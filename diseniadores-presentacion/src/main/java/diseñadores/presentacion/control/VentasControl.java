@@ -1,10 +1,10 @@
 package diseñadores.presentacion.control;
 
-import diseniadores.negocios.dto.*;
-import diseniadores.negocios.inventario.IInventario;
-import diseniadores.negocios.proveedores.IProveedores;
-import diseniadores.negocios.usuarios.IUsuarios;
-import diseniadores.negocios.ventas.IVentas;
+import diseñadores.negocios.dto.*;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.ventas.IVentas;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

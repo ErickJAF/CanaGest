@@ -1,8 +1,8 @@
 package diseñadores.presentacion.frame;
 
-import diseniadores.negocios.dto.*;
-import diseniadores.presentacion.control.VentasControl;
-import diseniadores.presentacion.utilidad.Colores;
+import diseñadores.negocios.dto.*;
+import diseñadores.presentacion.control.VentasControl;
+import diseñadores.presentacion.utilidad.Colores;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

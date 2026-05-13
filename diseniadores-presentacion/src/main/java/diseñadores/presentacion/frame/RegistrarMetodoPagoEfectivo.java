@@ -1,10 +1,10 @@
 package diseñadores.presentacion.frame;
 
-import diseniadores.negocios.dto.*;
-import diseniadores.presentacion.control.VentasControl;
-import diseniadores.presentacion.utilidad.Colores;
-import diseniadores.presentacion.utilidad.Componentes;
-import diseniadores.presentacion.utilidad.Fuentes;
+import diseñadores.negocios.dto.*;
+import diseñadores.presentacion.control.VentasControl;
+import diseñadores.presentacion.utilidad.Colores;
+import diseñadores.presentacion.utilidad.Componentes;
+import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

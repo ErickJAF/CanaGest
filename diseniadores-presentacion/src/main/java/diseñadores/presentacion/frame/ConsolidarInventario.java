@@ -1,11 +1,11 @@
 package diseñadores.presentacion.frame;
 
-import diseniadores.negocios.dto.ItemConteoDTO;
-import diseniadores.negocios.dto.ProductoDTO;
-import diseniadores.presentacion.control.VentasControl;
-import diseniadores.presentacion.utilidad.Bordes;
-import diseniadores.presentacion.utilidad.Colores;
-import diseniadores.presentacion.utilidad.Fuentes;
+import diseñadores.negocios.dto.ItemConteoDTO;
+import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.presentacion.control.VentasControl;
+import diseñadores.presentacion.utilidad.Bordes;
+import diseñadores.presentacion.utilidad.Colores;
+import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

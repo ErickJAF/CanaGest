@@ -1,8 +1,8 @@
 package diseñadores.presentacion.utilidad;
 
-import diseniadores.negocios.dto.UsuarioDTO;
-import diseniadores.presentacion.control.VentasControl;
-import diseniadores.presentacion.frame.MenuPrincipal;
+import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.presentacion.control.VentasControl;
+import diseñadores.presentacion.frame.MenuPrincipal;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;

@@ -1,14 +1,14 @@
 package diseñadores.presentacion;
 
-import diseniadores.negocios.dto.UsuarioDTO;
-import diseniadores.negocios.inventario.*;
-import diseniadores.negocios.proveedores.*;
-import diseniadores.negocios.usuarios.IUsuarios;
-import diseniadores.negocios.usuarios.UsuariosFacade;
-import diseniadores.negocios.ventas.VentasFacade;
-import diseniadores.presentacion.control.VentasControl;
-import diseniadores.presentacion.frame.*;
-import diseniadores.presentacion.utilidad.*;
+import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.negocios.inventario.*;
+import diseñadores.negocios.proveedores.*;
+import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.usuarios.UsuariosFacade;
+import diseñadores.negocios.ventas.VentasFacade;
+import diseñadores.presentacion.control.VentasControl;
+import diseñadores.presentacion.frame.*;
+import diseñadores.presentacion.utilidad.*;
 import javax.swing.SwingUtilities;
 
 public class Main {
