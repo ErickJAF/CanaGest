@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.mycompany</groupId>
+    <artifactId>CanaGest</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>../diseniadores-infraestructura-banco</module>
+        <module>../diseniadores-infraestructura-dto</module>
+        <module>../diseniadores-infraestructura-notificaciones</module>
+        <module>../diseniadores-infraestructura-pagos</module>
+        <module>../diseniadores-negocios-inventario</module>
+        <module>../diseniadores-negocios-objetos</module>
+        <module>../diseniadores-negocios-productos</module>
+        <module>../diseniadores-negocios-proveedor</module>
+        <module>../diseniadores-negocios-usuarios</module>
+        <module>../diseniadores-negocios-ventas</module>
+        <module>../diseniadores-negocios-dto</module>
+        <module>../diseniadores-nucleo</module>
+        <module>../diseniadores-persistencia</module>
+        <module>../diseniadores-presentacion</module>
+    </modules>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+</project>

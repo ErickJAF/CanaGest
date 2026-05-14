@@ -1,0 +1,13 @@
+diseñadores\persistencia\dao\impl\OrdenCompraDAOImpl.class
+diseñadores\persistencia\dao\impl\ProductoDAOImpl.class
+diseñadores\persistencia\dao\IOrdenCompraDAO.class
+diseñadores\persistencia\IPersistencia.class
+diseñadores\persistencia\dao\IProductoDAO.class
+diseñadores\persistencia\conexion\Conexion.class
+diseñadores\persistencia\dao\impl\ProveedorDAOImpl.class
+diseñadores\persistencia\dao\IUsuarioDAO.class
+diseñadores\persistencia\dao\impl\UsuarioDAOImpl.class
+diseñadores\persistencia\dao\IProveedorDAO.class
+diseñadores\persistencia\dao\impl\VentaDAOImpl.class
+diseñadores\persistencia\PersistenciaFacade.class
+diseñadores\persistencia\dao\IVentaDAO.class
