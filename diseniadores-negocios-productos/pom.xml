@@ -8,12 +8,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>diseniadores-negocios.dto</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>diseniadores-negocios-inventario</artifactId>
+            <artifactId>diseniadores-negocios-dto</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -21,10 +16,16 @@
             <artifactId>diseniadores-negocios-objetos</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>diseniadores-negocios-inventario</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.source>22</maven.compiler.source>
+<maven.compiler.target>22</maven.compiler.target>
         <exec.mainClass>com.mycompany.diseniadores.negocios.productos.DiseniadoresNegociosProductos</exec.mainClass>
     </properties>
 </project>

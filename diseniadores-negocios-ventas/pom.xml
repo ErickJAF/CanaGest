@@ -1,45 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>com.mycompany</groupId>
     <artifactId>diseniadores-negocios-ventas</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <dependencies>
+
+        <!-- DTO Negocios -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>diseniadores-negocios.dto</artifactId>
+            <artifactId>diseniadores-negocios-dto</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- DTO Infraestructura -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>diseniadores-infraestructura-dto</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Notificaciones -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>diseniadores-infraestructura-notificaciones</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Pagos -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>diseniadores-infraestructura-pagos</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Banco -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>diseniadores-infraestructura-banco</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Inventario -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>diseniadores-negocios-inventario</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Productos -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>diseniadores-negocios-productos</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Objetos -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>diseniadores-negocios-objetos</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Persistencia -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>diseniadores-persistencia</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
-        <exec.mainClass>com.mycompany.diseniadores.negocios.ventas.DiseniadoresNegociosVentas</exec.mainClass>
+
+        <!-- Java -->
+        <maven.compiler.source>22</maven.compiler.source>
+        <maven.compiler.target>22</maven.compiler.target>
+
+        <exec.mainClass>
+            com.mycompany.diseniadores.negocios.ventas.DiseniadoresNegociosVentas
+        </exec.mainClass>
     </properties>
+
 </project>
