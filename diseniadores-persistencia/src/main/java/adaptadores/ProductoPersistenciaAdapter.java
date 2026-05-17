@@ -97,7 +97,7 @@ public class ProductoPersistenciaAdapter {
      * @param proveedor proveedor de dominio.
      * @return entidad mongo de proveedor.
      */
-    private ProveedorMongoEntidad convertirProveedorAMongo(Proveedor proveedor) {
+    public ProveedorMongoEntidad convertirProveedorAMongo(Proveedor proveedor) {
         if (proveedor == null) {
             return null;
         }
@@ -117,7 +117,7 @@ public class ProductoPersistenciaAdapter {
      * @param mongo entidad mongo de proveedor.
      * @return proveedor del dominio.
      */
-    private Proveedor convertirProveedorADominio(ProveedorMongoEntidad mongo) {
+    public Proveedor convertirProveedorADominio(ProveedorMongoEntidad mongo) {
         if (mongo == null) {
             return null;
         }

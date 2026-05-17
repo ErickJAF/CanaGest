@@ -2,6 +2,7 @@ package diseñadores.negocios.proveedores;
 
 import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
+import excepciones.NegocioException;
 
 import java.util.List;
 
@@ -18,48 +19,47 @@ public class ProveedoresFacade implements IProveedores {
   }
 
   @Override
-  public List<ProveedorDTO> obtenerProveedores() {
+  public List<ProveedorDTO> obtenerProveedores() throws NegocioException {
     return control.obtenerTodos();
   }
 
   @Override
-  public ProveedorDTO obtenerProveedorPorCodigo(String codigo) {
+  public ProveedorDTO obtenerProveedorPorCodigo(String codigo) throws NegocioException {
     return control.obtenerPorCodigo(codigo);
   }
 
   @Override
-  public void guardarProveedor(ProveedorDTO proveedor) {
+  public void guardarProveedor(ProveedorDTO proveedor) throws NegocioException {
     control.guardar(proveedor);
   }
 
   @Override
-  public void actualizarProveedor(ProveedorDTO proveedor) {
+  public void actualizarProveedor(ProveedorDTO proveedor) throws NegocioException {
     control.actualizar(proveedor);
   }
 
   @Override
-  public int contarProveedoresActivos() {
+  public int contarProveedoresActivos() throws NegocioException {
     return control.contarActivos();
   }
 
   @Override
-  public List<OrdenCompraDTO> obtenerOrdenesCompra() {
+  public List<OrdenCompraDTO> obtenerOrdenesCompra() throws NegocioException {
     return control.obtenerOrdenesCompra();
   }
 
   @Override
-  public void guardarOrdenCompra(OrdenCompraDTO orden) {
+  public void guardarOrdenCompra(OrdenCompraDTO orden) throws NegocioException {
     control.guardarOrdenCompra(orden.getProveedor(), orden.getCantidadProductos(), orden.getTotal());
   }
 
   @Override
-  public void actualizarOrdenCompra(OrdenCompraDTO orden) {
+  public void actualizarOrdenCompra(OrdenCompraDTO orden) throws NegocioException {
     control.actualizarOrdenCompra(orden);
   }
 
   @Override
-  public void cambiarEstadoOrden(String numero, String nuevoEstado) {
+  public void cambiarEstadoOrden(String numero, String nuevoEstado) throws NegocioException {
     control.cambiarEstadoOrden(numero, nuevoEstado);
   }
-
 }

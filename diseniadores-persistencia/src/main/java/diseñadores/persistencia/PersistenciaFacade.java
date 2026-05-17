@@ -1,173 +1,215 @@
 package diseñadores.persistencia;
 
-import diseñadores.negocios.dto.OrdenCompraDTO;
-import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.persistencia.dao.IConteoInventarioDAO;
 import diseñadores.persistencia.dao.IOrdenCompraDAO;
 import diseñadores.persistencia.dao.IProductoDAO;
 import diseñadores.persistencia.dao.IProveedorDAO;
 import diseñadores.persistencia.dao.IUsuarioDAO;
 import diseñadores.persistencia.dao.IVentaDAO;
+import diseñadores.persistencia.dao.impl.ConteoInventarioDAOImpl;
 import diseñadores.persistencia.dao.impl.OrdenCompraDAOImpl;
 import diseñadores.persistencia.dao.impl.ProductoDAOImpl;
 import diseñadores.persistencia.dao.impl.ProveedorDAOImpl;
 import diseñadores.persistencia.dao.impl.UsuarioDAOImpl;
 import diseñadores.persistencia.dao.impl.VentaDAOImpl;
+import entidades.ConteoInventario;
+import entidades.OrdenCompra;
+import entidades.Producto;
+import entidades.Proveedor;
+import entidades.Usuario;
+import entidades.Venta;
+import excepciones.PersistenciaException;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Fachada única de Persistencia que centraliza y delega el acceso a los subsistemas DAO.
+ * Trabaja enteramente con entidades de dominio limpio, aislando la lógica de datos.
+ * * @author ERICK
+ */
 public class PersistenciaFacade implements IPersistencia {
 
-  private static PersistenciaFacade instancia;
+    private static PersistenciaFacade instancia;
 
-  private final IProductoDAO productoDAO;
-  private final IVentaDAO ventaDAO;
-  private final IUsuarioDAO usuarioDAO;
-  private final IProveedorDAO proveedorDAO;
-  private final IOrdenCompraDAO ordenCompraDAO;
+    private final IProductoDAO productoDAO;
+    private final IVentaDAO ventaDAO;
+    private final IUsuarioDAO usuarioDAO;
+    private final IProveedorDAO proveedorDAO;
+    private final IOrdenCompraDAO ordenCompraDAO;
+    private final IConteoInventarioDAO conteoInventarioDAO;
 
-  private PersistenciaFacade() {
-    this.productoDAO = new ProductoDAOImpl();
-    this.ventaDAO = new VentaDAOImpl();
-    this.usuarioDAO = new UsuarioDAOImpl();
-    this.proveedorDAO = new ProveedorDAOImpl();
-    this.ordenCompraDAO = new OrdenCompraDAOImpl();
-  }
-
-  public static synchronized PersistenciaFacade getInstancia() {
-    if (instancia == null) {
-      instancia = new PersistenciaFacade();
+    /**
+     * Constructor privado para aplicar el patrón de diseño Singleton.
+     */
+    private PersistenciaFacade() {
+        this.productoDAO = new ProductoDAOImpl();
+        this.ventaDAO = new VentaDAOImpl();
+        this.usuarioDAO = new UsuarioDAOImpl();
+        this.proveedorDAO = new ProveedorDAOImpl();
+        this.ordenCompraDAO = new OrdenCompraDAOImpl();
+        this.conteoInventarioDAO = new ConteoInventarioDAOImpl();
     }
-    return instancia;
-  }
 
-  @Override
-  public List<ProductoDTO> obtenerProductos() {
-    return productoDAO.obtenerTodos();
-  }
+    /**
+     * Obtiene de forma sincronizada la instancia única de la Fachada.
+     * * @return Instancia global de PersistenciaFacade.
+     */
+    public static synchronized PersistenciaFacade getInstancia() {
+        if (instancia == null) {
+            instancia = new PersistenciaFacade();
+        }
+        return instancia;
+    }
 
-  @Override
-  public ProductoDTO obtenerProductoPorCodigo(String codigo) {
-    return productoDAO.obtenerPorCodigo(codigo);
-  }
+    @Override
+    public List<Producto> obtenerProductos() throws PersistenciaException {
+        return productoDAO.obtenerTodos();
+    }
 
-  @Override
-  public void guardarProducto(ProductoDTO producto) {
-    productoDAO.guardar(producto);
-  }
+    @Override
+    public Producto obtenerProductoPorCodigo(String codigo) throws PersistenciaException {
+        return productoDAO.obtenerPorCodigo(codigo);
+    }
 
-  @Override
-  public void actualizarProducto(ProductoDTO producto) {
-    productoDAO.actualizar(producto);
-  }
+    @Override
+    public void guardarProducto(Producto producto) throws PersistenciaException {
+        productoDAO.guardar(producto);
+    }
 
-  @Override
-  public void eliminarProducto(String codigo) {
-    productoDAO.eliminar(codigo);
-  }
+    @Override
+    public void actualizarProducto(Producto producto) throws PersistenciaException {
+        productoDAO.actualizar(producto);
+    }
 
-  @Override
-  public List<VentaDTO> obtenerVentas() {
-    return ventaDAO.obtenerTodas();
-  }
+    @Override
+    public void eliminarProducto(String codigo) throws PersistenciaException {
+        productoDAO.eliminar(codigo);
+    }
 
-  @Override
-  public VentaDTO obtenerVentaPorFolio(String folio) {
-    return ventaDAO.obtenerPorFolio(folio);
-  }
+    @Override
+    public List<Venta> obtenerVentas() throws PersistenciaException {
+        return ventaDAO.obtenerTodas();
+    }
 
-  @Override
-  public void guardarVenta(VentaDTO venta) {
-    ventaDAO.guardar(venta);
-  }
+    @Override
+    public Venta obtenerVentaPorCodigoVenta(String codigoVenta) throws PersistenciaException {
+        return ventaDAO.obtenerPorCodigoVenta(codigoVenta);
+    }
 
-  @Override
-  public void actualizarVenta(VentaDTO venta) {
-    ventaDAO.actualizar(venta);
-  }
+    @Override
+    public void guardarVenta(Venta venta) throws PersistenciaException {
+        ventaDAO.guardar(venta);
+    }
 
-  @Override
-  public void eliminarVenta(String folio) {
-    ventaDAO.eliminar(folio);
-  }
+    @Override
+    public void actualizarVenta(Venta venta) throws PersistenciaException {
+        ventaDAO.actualizar(venta);
+    }
 
-  @Override
-  public List<UsuarioDTO> obtenerUsuarios() {
-    return usuarioDAO.obtenerTodos();
-  }
+    @Override
+    public void eliminarVenta(String codigoVenta) throws PersistenciaException {
+        ventaDAO.eliminar(codigoVenta);
+    }
 
-  @Override
-  public Optional<UsuarioDTO> obtenerUsuarioPorNombre(String nombre) {
-    UsuarioDTO usuario = usuarioDAO.obtenerPorNombre(nombre);
-    return Optional.ofNullable(usuario);
-  }
+    @Override
+    public List<Usuario> obtenerUsuarios() throws PersistenciaException {
+        return usuarioDAO.obtenerTodos();
+    }
 
-  @Override
-  public void guardarUsuario(UsuarioDTO usuario) {
-    usuarioDAO.guardar(usuario);
-  }
+    @Override
+    public Optional<Usuario> obtenerUsuarioPorIdUsuario(String idUsuario) throws PersistenciaException {
+        Usuario usuario = usuarioDAO.obtenerPorIdUsuario(idUsuario);
+        return Optional.ofNullable(usuario);
+    }
 
-  @Override
-  public void actualizarUsuario(UsuarioDTO usuario) {
-    usuarioDAO.actualizar(usuario);
-  }
+    @Override
+    public void guardarUsuario(Usuario usuario) throws PersistenciaException {
+        usuarioDAO.guardar(usuario);
+    }
 
-  @Override
-  public void eliminarUsuario(String nombre) {
-    usuarioDAO.eliminar(nombre);
-  }
+    @Override
+    public void actualizarUsuario(Usuario usuario) throws PersistenciaException {
+        usuarioDAO.actualizar(usuario);
+    }
 
-  @Override
-  public List<ProveedorDTO> obtenerProveedores() {
-    return proveedorDAO.obtenerTodos();
-  }
+    @Override
+    public void eliminarUsuario(String idUsuario) throws PersistenciaException {
+        usuarioDAO.eliminar(idUsuario);
+    }
 
-  @Override
-  public ProveedorDTO obtenerProveedorPorCodigo(String codigo) {
-    return proveedorDAO.obtenerPorCodigo(codigo);
-  }
+    @Override
+    public List<Proveedor> obtenerProveedores() throws PersistenciaException {
+        return proveedorDAO.obtenerTodos();
+    }
 
-  @Override
-  public void guardarProveedor(ProveedorDTO proveedor) {
-    proveedorDAO.guardar(proveedor);
-  }
+    @Override
+    public Proveedor obtenerProveedorPorCodigo(String codigo) throws PersistenciaException {
+        return proveedorDAO.obtenerPorCodigo(codigo);
+    }
 
-  @Override
-  public void actualizarProveedor(ProveedorDTO proveedor) {
-    proveedorDAO.actualizar(proveedor);
-  }
+    @Override
+    public void guardarProveedor(Proveedor proveedor) throws PersistenciaException {
+        proveedorDAO.guardar(proveedor);
+    }
 
-  @Override
-  public void eliminarProveedor(String codigo) {
-    proveedorDAO.eliminar(codigo);
-  }
+    @Override
+    public void actualizarProveedor(Proveedor proveedor) throws PersistenciaException {
+        proveedorDAO.actualizar(proveedor);
+    }
 
-  @Override
-  public List<OrdenCompraDTO> obtenerOrdenesCompra() {
-    return ordenCompraDAO.obtenerTodas();
-  }
+    @Override
+    public void eliminarProveedor(String codigo) throws PersistenciaException {
+        proveedorDAO.eliminar(codigo);
+    }
 
-  @Override
-  public OrdenCompraDTO obtenerOrdenCompraPorNumero(String numero) {
-    return ordenCompraDAO.obtenerPorNumero(numero);
-  }
+    @Override
+    public List<OrdenCompra> obtenerOrdenesCompra() throws PersistenciaException {
+        return ordenCompraDAO.obtenerTodas();
+    }
 
-  @Override
-  public void guardarOrdenCompra(OrdenCompraDTO orden) {
-    ordenCompraDAO.guardar(orden);
-  }
+    @Override
+    public OrdenCompra obtenerOrdenCompraPorNumero(String numero) throws PersistenciaException {
+        return ordenCompraDAO.obtenerPorNumero(numero);
+    }
 
-  @Override
-  public void actualizarOrdenCompra(OrdenCompraDTO orden) {
-    ordenCompraDAO.actualizar(orden);
-  }
+    @Override
+    public void guardarOrdenCompra(OrdenCompra orden) throws PersistenciaException {
+        ordenCompraDAO.guardar(orden);
+    }
 
-  @Override
-  public void eliminarOrdenCompra(String numero) {
-    ordenCompraDAO.eliminar(numero);
-  }
+    @Override
+    public void actualizarOrdenCompra(OrdenCompra orden) throws PersistenciaException {
+        ordenCompraDAO.actualizar(orden);
+    }
 
+    @Override
+    public void eliminarOrdenCompra(String numero) throws PersistenciaException {
+        ordenCompraDAO.eliminar(numero);
+    }
+
+    @Override
+    public List<ConteoInventario> obtenerConteosInventario() throws PersistenciaException {
+        return conteoInventarioDAO.obtenerTodos();
+    }
+
+    @Override
+    public ConteoInventario obtenerConteoInventarioPorCodigo(String codigo) throws PersistenciaException {
+        return conteoInventarioDAO.obtenerPorCodigo(codigo);
+    }
+
+    @Override
+    public void guardarConteoInventario(ConteoInventario conteo) throws PersistenciaException {
+        conteoInventarioDAO.guardar(conteo);
+    }
+
+    @Override
+    public void actualizarConteoInventario(ConteoInventario conteo) throws PersistenciaException {
+        conteoInventarioDAO.actualizar(conteo);
+    }
+
+    @Override
+    public void eliminarConteoInventario(String codigo) throws PersistenciaException {
+        conteoInventarioDAO.eliminar(codigo);
+    }
 }

@@ -4,6 +4,8 @@ import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.negocios.objetos.OrdenCompra;
 import diseñadores.negocios.objetos.Proveedor;
+import excepciones.NegocioException;
+import excepciones.PersistenciaException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,23 +14,26 @@ import java.util.UUID;
 
 public class ProveedoresControl {
 
-  public List<ProveedorDTO> obtenerTodos() {
-    return Proveedor.obtenerTodos();
+  public List<ProveedorDTO> obtenerTodos() throws NegocioException {
+    try {
+      return Proveedor.obtenerTodos();
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al consultar la lista completa de proveedores", e);
+    }
   }
 
-  public ProveedorDTO obtenerPorCodigo(String codigo) {
+  public ProveedorDTO obtenerPorCodigo(String codigo) throws NegocioException {
     validarCodigoRequerido(codigo);
-
     return ejecutarObtencionPorCodigo(codigo);
   }
 
-  public int contarActivos() {
+  public int contarActivos() throws NegocioException {
     return (int) obtenerTodos().stream()
       .filter(ProveedorDTO::isActivo)
       .count();
   }
 
-  public void guardar(ProveedorDTO proveedor) {
+  public void guardar(ProveedorDTO proveedor) throws NegocioException {
     validarProveedorNoNulo(proveedor);
     validarDatosObligatoriosProveedor(proveedor);
 
@@ -36,7 +41,7 @@ public class ProveedoresControl {
     ejecutarGuardadoProveedor(proveedor);
   }
 
-  public void actualizar(ProveedorDTO proveedor) {
+  public void actualizar(ProveedorDTO proveedor) throws NegocioException {
     validarProveedorNoNulo(proveedor);
     validarCodigoObligatorio(proveedor.getCodigo());
     validarNombreObligatorio(proveedor.getNombre());
@@ -45,11 +50,15 @@ public class ProveedoresControl {
     ejecutarActualizacionProveedor(proveedor);
   }
 
-  public List<OrdenCompraDTO> obtenerOrdenesCompra() {
-    return OrdenCompra.obtenerTodas();
+  public List<OrdenCompraDTO> obtenerOrdenesCompra() throws NegocioException {
+    try {
+      return OrdenCompra.obtenerTodas();
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al obtener el historial de órdenes de compra", e);
+    }
   }
 
-  public OrdenCompraDTO obtenerOrdenPorNumero(String numero) {
+  public OrdenCompraDTO obtenerOrdenPorNumero(String numero) throws NegocioException {
     validarNumeroOrdenRequerido(numero);
 
     OrdenCompraDTO orden = ejecutarObtencionOrden(numero);
@@ -58,7 +67,7 @@ public class ProveedoresControl {
     return orden;
   }
 
-  public void guardarOrdenCompra(ProveedorDTO proveedor, int cantidadProductos, BigDecimal total) {
+  public void guardarOrdenCompra(ProveedorDTO proveedor, int cantidadProductos, BigDecimal total) throws NegocioException {
     validarProveedorNoNulo(proveedor);
     validarCantidadProductos(cantidadProductos);
     validarTotalOrden(total);
@@ -68,7 +77,7 @@ public class ProveedoresControl {
     ejecutarGuardadoOrden(orden);
   }
 
-  public void actualizarOrdenCompra(OrdenCompraDTO orden) {
+  public void actualizarOrdenCompra(OrdenCompraDTO orden) throws NegocioException {
     validarOrdenNoNula(orden);
     validarNumeroOrdenRequerido(orden.getNumero());
     validarExistenciaOrdenPorNumero(orden.getNumero());
@@ -76,7 +85,7 @@ public class ProveedoresControl {
     ejecutarActualizacionOrden(orden);
   }
 
-  public void cambiarEstadoOrden(String numero, String nuevoEstado) {
+  public void cambiarEstadoOrden(String numero, String nuevoEstado) throws NegocioException {
     validarNumeroOrdenRequerido(numero);
     validarEstadoRequerido(nuevoEstado);
 
@@ -125,7 +134,7 @@ public class ProveedoresControl {
     }
   }
 
-  private void validarExistenciaProveedor(String codigo) {
+  private void validarExistenciaProveedor(String codigo) throws NegocioException {
     if (ejecutarObtencionPorCodigo(codigo) == null) {
       throw new IllegalStateException("No existe un proveedor con el código: " + codigo);
     }
@@ -143,7 +152,7 @@ public class ProveedoresControl {
     }
   }
 
-  private void validarExistenciaOrdenPorNumero(String numero) {
+  private void validarExistenciaOrdenPorNumero(String numero) throws NegocioException {
     if (ejecutarObtencionOrden(numero) == null) {
       throw new IllegalStateException("No existe una orden con el número: " + numero);
     }
@@ -188,28 +197,52 @@ public class ProveedoresControl {
     orden.setEstado(estado);
   }
 
-  private ProveedorDTO ejecutarObtencionPorCodigo(String codigo) {
-    return Proveedor.obtenerPorCodigo(codigo);
+  private ProveedorDTO ejecutarObtencionPorCodigo(String codigo) throws NegocioException {
+    try {
+      return Proveedor.obtenerPorCodigo(codigo);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al buscar el proveedor con código: " + codigo, e);
+    }
   }
 
-  private void ejecutarGuardadoProveedor(ProveedorDTO proveedor) {
-    Proveedor.guardar(proveedor);
+  private void ejecutarGuardadoProveedor(ProveedorDTO proveedor) throws NegocioException {
+    try {
+      Proveedor.guardar(proveedor);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al dar de alta al nuevo proveedor", e);
+    }
   }
 
-  private void ejecutarActualizacionProveedor(ProveedorDTO proveedor) {
-    Proveedor.actualizar(proveedor);
+  private void ejecutarActualizacionProveedor(ProveedorDTO proveedor) throws NegocioException {
+    try {
+      Proveedor.actualizar(proveedor);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al actualizar la ficha informativa del proveedor", e);
+    }
   }
 
-  private OrdenCompraDTO ejecutarObtencionOrden(String numero) {
-    return OrdenCompra.obtenerPorNumero(numero);
+  private OrdenCompraDTO ejecutarObtencionOrden(String numero) throws NegocioException {
+    try {
+      return OrdenCompra.obtenerPorNumero(numero);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al recuperar la orden de compra número: " + numero, e);
+    }
   }
 
-  private void ejecutarGuardadoOrden(OrdenCompraDTO orden) {
-    OrdenCompra.guardar(orden);
+  private void ejecutarGuardadoOrden(OrdenCompraDTO orden) throws NegocioException {
+    try {
+      OrdenCompra.guardar(orden);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al registrar la orden de compra en el sistema", e);
+    }
   }
 
-  private void ejecutarActualizacionOrden(OrdenCompraDTO orden) {
-    OrdenCompra.actualizar(orden);
+  private void ejecutarActualizacionOrden(OrdenCompraDTO orden) throws NegocioException {
+    try {
+      OrdenCompra.actualizar(orden);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al guardar las modificaciones de la orden de compra", e);
+    }
   }
 
   private OrdenCompraDTO crearNuevaOrden(ProveedorDTO proveedor, int cantidad, BigDecimal total) {
@@ -238,5 +271,4 @@ public class ProveedoresControl {
       LocalDate.now().getYear(),
       UUID.randomUUID().toString().substring(0, 8).toUpperCase());
   }
-
 }

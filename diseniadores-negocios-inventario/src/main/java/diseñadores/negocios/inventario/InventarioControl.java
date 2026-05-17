@@ -2,51 +2,77 @@ package diseñadores.negocios.inventario;
 
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.objetos.Inventario;
+import excepciones.NegocioException;
+import excepciones.PersistenciaException;
 import java.util.List;
 
 public class InventarioControl {
 
-  public ProductoDTO obtenerProductoPorCodigo(String codigo) {
-    return Inventario.obtenerProductoPorCodigo(codigo);
+  public ProductoDTO obtenerProductoPorCodigo(String codigo) throws NegocioException {
+    try {
+      return Inventario.obtenerProductoPorCodigo(codigo);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al buscar el producto en el inventario por código", e);
+    }
   }
 
-  public List<ProductoDTO> obtenerTodos() {
-    return Inventario.obtenerTodos();
+  public List<ProductoDTO> obtenerTodos() throws NegocioException {
+    try {
+      return Inventario.obtenerTodos();
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al consultar las existencias de inventario", e);
+    }
   }
 
-  public List<ProductoDTO> obtenerProductosBajoMinimo() {
-    return Inventario.obtenerProductosBajoMinimo();
+  public List<ProductoDTO> obtenerProductosBajoMinimo() throws NegocioException {
+    try {
+      return Inventario.obtenerProductosBajoMinimo();
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al consultar productos con stock crítico (bajo mínimo)", e);
+    }
   }
 
-  public List<ProductoDTO> necesitanReorden() {
-    return Inventario.necesitanReorden();
+  public List<ProductoDTO> necesitanReorden() throws NegocioException {
+    try {
+      return Inventario.necesitanReorden();
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al procesar la lista de productos que requieren reorden", e);
+    }
   }
 
-  public boolean verificarStock(String codigo, int cantidad) {
+  public boolean verificarStock(String codigo, int cantidad) throws NegocioException {
     if (esConsultaInvalida(codigo, cantidad)) {
       return false;
     }
     return ejecutarVerificacionStock(codigo, cantidad);
   }
 
-  public void descontarStock(String codigo, int cantidad) {
-    validarCantidadPositiva(cantidad);
+  public void descontarStock(String codigo, int cantidad) throws NegocioException {
+    validarQuantityPositiva(cantidad);
 
-    ProductoDTO producto = Inventario.obtenerProductoPorCodigo(codigo);
+    ProductoDTO producto = ejecutarObtencionPorCodigo(codigo); 
     validarExistenciaProducto(producto);
     validarSuficienciaStock(producto, cantidad);
 
-    Inventario.descontarStock(codigo, cantidad);
+    try {
+      Inventario.descontarStock(codigo, cantidad);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("No se pudo procesar la disminución de stock en el inventario", e);
+    }
   }
 
-  public void actualizarStock(String codigo, int nuevaCantidad) {
+  public void actualizarStock(String codigo, int nuevaCantidad) throws NegocioException {
     validarStockNoNegativo(nuevaCantidad);
     validarExistenciaProductoPorCodigo(codigo);
 
-    Inventario.actualizarStock(codigo, nuevaCantidad);
+    try {
+      Inventario.actualizarStock(codigo, nuevaCantidad);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al actualizar la cantidad de stock disponible", e);
+    }
   }
 
-  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
+  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) throws NegocioException {
     validarValoresNoNegativos(nuevoStock, nuevoMinimo, nuevoMaximo);
     validarJerarquiaStock(nuevoMinimo, nuevoMaximo);
     validarExistenciaProductoPorCodigo(codigo);
@@ -54,22 +80,30 @@ public class InventarioControl {
     ejecutarActualizacionCompleta(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
   }
 
-  public void ajustarStock(String codigo, int stockFisico) {
+  public void ajustarStock(String codigo, int stockFisico) throws NegocioException {
     validarStockFisicoNoNegativo(stockFisico);
     validarExistenciaProductoPorCodigo(codigo);
 
-    Inventario.ajustarStock(codigo, stockFisico);
+    try {
+      Inventario.ajustarStock(codigo, stockFisico);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("No se pudo registrar el ajuste de stock físico", e);
+    }
   }
 
-  public int[] obtenerEstadisticasConteo() {
-    return Inventario.obtenerEstadisticasConteo();
+  public int[] obtenerEstadisticasConteo() throws NegocioException {
+    try {
+      return Inventario.obtenerEstadisticasConteo();
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al calcular las métricas y estadísticas de conteos", e);
+    }
   }
 
   private boolean esConsultaInvalida(String codigo, int cantidad) {
     return codigo == null || codigo.isBlank() || cantidad <= 0;
   }
 
-  private void validarCantidadPositiva(int cantidad) {
+  private void validarQuantityPositiva(int cantidad) {
     if (cantidad <= 0) {
       throw new IllegalArgumentException("Cantidad mayor a cero requerida");
     }
@@ -105,9 +139,9 @@ public class InventarioControl {
     }
   }
 
-  private void validarExistenciaProductoPorCodigo(String codigo) {
+  private void validarExistenciaProductoPorCodigo(String codigo) throws NegocioException {
     if (ejecutarObtencionPorCodigo(codigo) == null) {
-      throw new IllegalStateException("Producto no existe");
+      throw new IllegalStateException("Producto no existe en el inventario");
     }
   }
 
@@ -117,16 +151,27 @@ public class InventarioControl {
     }
   }
 
-  private ProductoDTO ejecutarObtencionPorCodigo(String codigo) {
-    return Inventario.obtenerProductoPorCodigo(codigo);
+  private ProductoDTO ejecutarObtencionPorCodigo(String codigo) throws NegocioException {
+    try {
+      return Inventario.obtenerProductoPorCodigo(codigo);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al validar existencia del producto", e);
+    }
   }
 
-  private boolean ejecutarVerificacionStock(String codigo, int cantidad) {
-    return Inventario.verificarStock(codigo, cantidad);
+  private boolean ejecutarVerificacionStock(String codigo, int cantidad) throws NegocioException {
+    try {
+      return Inventario.verificarStock(codigo, cantidad);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al consultar el estado de disponibilidad del stock", e);
+    }
   }
 
-  private void ejecutarActualizacionCompleta(String c, int s, int min, int max) {
-    Inventario.actualizarStockCompleto(c, s, min, max);
+  private void ejecutarActualizacionCompleta(String c, int s, int min, int max) throws NegocioException {
+    try {
+      Inventario.actualizarStockCompleto(c, s, min, max);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al guardar la reconfiguración completa de los límites del stock", e);
+    }
   }
-
 }

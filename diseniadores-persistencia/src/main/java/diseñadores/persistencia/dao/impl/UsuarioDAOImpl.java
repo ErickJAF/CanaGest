@@ -1,129 +1,179 @@
 package diseñadores.persistencia.dao.impl;
 
+import adaptadores.UsuarioPersistenciaAdapter;
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.ReplaceOptions;
-import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.dto.UsuarioRol;
 import diseñadores.persistencia.conexion.Conexion;
 import diseñadores.persistencia.dao.IUsuarioDAO;
-import org.bson.Document;
+import entidades.Usuario;
+import entidadesmongo.UsuarioMongoEntidad;
+import excepciones.PersistenciaException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO encargado de administrar la colección de usuarios en MongoDB.
+ * Emplea la conexión centralizada Singleton y utiliza un adaptador perimetral
+ * para transformar las entidades de persistencia POJO a objetos de negocio puros.
+ * * @author ERICK
+ */
 public class UsuarioDAOImpl implements IUsuarioDAO {
 
-  private static final String COLECCION = "usuarios";
-  private final MongoCollection<Document> coleccion;
+    private final MongoCollection<UsuarioMongoEntidad> coleccion;
+    private final UsuarioPersistenciaAdapter adaptador;
 
-  public UsuarioDAOImpl() {
-    this.coleccion = Conexion.getInstancia()
-      .getDatabase()
-      .getCollection(COLECCION);
-  }
-
-  @Override
-  public List<UsuarioDTO> obtenerTodos() {
-    List<UsuarioDTO> lista = new ArrayList<>();
-    for (Document doc : coleccion.find()) {
-      lista.add(convertirADTO(doc));
+    /**
+     * Constructor por defecto que inicializa la colección tipada de MongoDB 
+     * mediante la instancia del Singleton de Conexión y levanta el adaptador.
+     */
+    public UsuarioDAOImpl() {
+        this.coleccion = Conexion.getInstancia().obtenerColeccionUsuarios();
+        this.adaptador = new UsuarioPersistenciaAdapter();
     }
-    return lista;
-  }
 
-  @Override
-  public UsuarioDTO obtenerPorNombre(String nombre) {
-    validarNombreRequerido(nombre);
-    Document doc = buscarDocumentoPorNombre(nombre);
-    return (doc != null) ? convertirADTO(doc) : null;
-  }
-
-  @Override
-  public void guardar(UsuarioDTO usuario) {
-    validarDatosUsuario(usuario);
-    validarNombreDisponible(usuario.getNombre());
-    ejecutarInsercion(usuario);
-  }
-
-  @Override
-  public void actualizar(UsuarioDTO usuario) {
-    validarDatosUsuario(usuario);
-    validarUsuarioExiste(usuario.getNombre());
-    ejecutarReemplazo(usuario);
-  }
-
-  @Override
-  public void eliminar(String nombre) {
-    validarNombreRequerido(nombre);
-    validarUsuarioExiste(nombre);
-    ejecutarEliminacion(nombre);
-  }
-
-  private void validarNombreRequerido(String nombre) {
-    if (nombre == null || nombre.isBlank()) {
-      throw new IllegalArgumentException("El nombre de usuario es obligatorio");
+    @Override
+    public List<Usuario> obtenerTodos() throws PersistenciaException {
+        try {
+            List<UsuarioMongoEntidad> entidadesMongo = new ArrayList<>();
+            coleccion.find().into(entidadesMongo);
+            return adaptador.convertirListaADominio(entidadesMongo);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible obtener la lista de usuarios desde MongoDB.", ex);
+        }
     }
-  }
 
-  private void validarDatosUsuario(UsuarioDTO usuario) {
-    if (usuario == null) {
-      throw new IllegalArgumentException("El usuario no puede ser nulo");
+    @Override
+    public Usuario obtenerPorIdUsuario(String idUsuario) throws PersistenciaException {
+        validarIdUsuarioRequerido(idUsuario);
+        try {
+            UsuarioMongoEntidad entidad = buscarDocumentoPorIdUsuario(idUsuario);
+            return (entidad != null) ? adaptador.convertirADominio(entidad) : null;
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible buscar el usuario por su identificador.", ex);
+        }
     }
-    validarNombreRequerido(usuario.getNombre());
-    if (usuario.getContrasena() == null || usuario.getContrasena().isBlank()) {
-      throw new IllegalArgumentException("La contraseña es obligatoria");
+
+    @Override
+    public void guardar(Usuario usuario) throws PersistenciaException {
+        validarDatosUsuario(usuario);
+        validarIdUsuarioDisponible(usuario.getIdUsuario());
+        try {
+            ejecutarInsercion(usuario);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible registrar al usuario en MongoDB.", ex);
+        }
     }
-    if (usuario.getRol() == null) {
-      throw new IllegalArgumentException("El rol del usuario es obligatorio");
+
+    @Override
+    public void actualizar(Usuario usuario) throws PersistenciaException {
+        validarDatosUsuario(usuario);
+        validarUsuarioExiste(usuario.getIdUsuario());
+        try {
+            ejecutarReemplazo(usuario);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible actualizar los datos del usuario seleccionado.", ex);
+        }
     }
-  }
 
-  private void validarNombreDisponible(String nombre) {
-    if (buscarDocumentoPorNombre(nombre) != null) {
-      throw new IllegalStateException("El nombre de usuario ya está registrado");
+    @Override
+    public void eliminar(String idUsuario) throws PersistenciaException {
+        validarIdUsuarioRequerido(idUsuario);
+        validarUsuarioExiste(idUsuario);
+        try {
+            ejecutarEliminacion(idUsuario);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible eliminar al usuario de MongoDB.", ex);
+        }
     }
-  }
 
-  private void validarUsuarioExiste(String nombre) {
-    if (buscarDocumentoPorNombre(nombre) == null) {
-      throw new IllegalStateException("El usuario no existe");
+    // --- MÉTODOS PRIVADOS DE VALIDACIÓN ---
+
+    /**
+     * Valida de forma defensiva que el parámetro del identificador no sea nulo ni esté vacío.
+     */
+    private void validarIdUsuarioRequerido(String idUsuario) throws PersistenciaException {
+        if (idUsuario == null || idUsuario.isBlank()) {
+            throw new PersistenciaException("El identificador (idUsuario) es obligatorio y no puede estar vacío.");
+        }
     }
-  }
 
-  private Document buscarDocumentoPorNombre(String nombre) {
-    return coleccion.find(Filters.eq("nombre", nombre.toLowerCase().trim())).first();
-  }
+    /**
+     * Verifica la integridad estructural del objeto de dominio antes de operar sobre la base de datos.
+     */
+    private void validarDatosUsuario(Usuario usuario) throws PersistenciaException {
+        if (usuario == null) {
+            throw new PersistenciaException("El usuario no puede ser nulo.");
+        }
+        validarIdUsuarioRequerido(usuario.getIdUsuario());
+        if (usuario.getNombre() == null || usuario.getNombre().isBlank()) {
+            throw new PersistenciaException("El nombre del usuario es obligatorio.");
+        }
+        if (usuario.getContraseña() == null || usuario.getContraseña().isBlank()) {
+            throw new PersistenciaException("La contraseña del usuario no puede estar vacía.");
+        }
+        if (usuario.getRol() == null) {
+            throw new PersistenciaException("El usuario debe tener asignado un rol válido.");
+        }
+    }
 
-  private void ejecutarInsercion(UsuarioDTO usuario) {
-    coleccion.insertOne(convertirADocumento(usuario));
-  }
+    /**
+     * Asegura que el identificador propuesto no esté registrado previamente.
+     */
+    private void validarIdUsuarioDisponible(String idUsuario) throws PersistenciaException {
+        if (buscarDocumentoPorIdUsuario(idUsuario) != null) {
+            throw new PersistenciaException("El identificador de usuario '" + idUsuario + "' ya se encuentra registrado.");
+        }
+    }
 
-  private void ejecutarReemplazo(UsuarioDTO usuario) {
-    coleccion.replaceOne(
-      Filters.eq("nombre", usuario.getNombre()),
-      convertirADocumento(usuario),
-      new ReplaceOptions().upsert(true)
-    );
-  }
+    /**
+     * Comprueba la existencia real del usuario previo a operaciones de actualización o baja.
+     */
+    private void validarUsuarioExiste(String idUsuario) throws PersistenciaException {
+        if (buscarDocumentoPorIdUsuario(idUsuario) == null) {
+            throw new PersistenciaException("El usuario con el identificador '" + idUsuario + "' no existe en el sistema.");
+        }
+    }
 
-  private void ejecutarEliminacion(String nombre) {
-    coleccion.deleteOne(Filters.eq("nombre", nombre));
-  }
+    // --- MÉTODOS PRIVADOS DE PROCESAMIENTO ATÓMICO MONGODB ---
 
-  private UsuarioDTO convertirADTO(Document doc) {
-    return new UsuarioDTO(
-      doc.getString("nombre"),
-      doc.getString("contrasena"),
-      UsuarioRol.valueOf(doc.getString("rol"))
-    );
-  }
+    /**
+     * Realiza la consulta directa en la colección utilizando filtros BSON.
+     * Aplica limpieza de cadenas (trim) para evitar fallos de espacios en blanco.
+     */
+    private UsuarioMongoEntidad buscarDocumentoPorIdUsuario(String idUsuario) {
+        String idLimpio = (idUsuario != null) ? idUsuario.trim() : "";
+        return coleccion.find(Filters.eq("idUsuario", idLimpio)).first();
+    }
 
-  private Document convertirADocumento(UsuarioDTO dto) {
-    return new Document()
-      .append("nombre", dto.getNombre().toLowerCase().trim())
-      .append("contrasena", dto.getContrasena())
-      .append("rol", dto.getRol().name());
-  }
+    /**
+     * Invoca la operación atómica de inserción delegando la transformación al adapter.
+     */
+    private void ejecutarInsercion(Usuario usuario) throws PersistenciaException {
+        UsuarioMongoEntidad entidadMongo = adaptador.convertirAMongo(usuario);
+        coleccion.insertOne(entidadMongo);
+    }
 
+    /**
+     * Ejecuta el reemplazo integral del documento garantizando que se respete el _id nativo de Mongo.
+     */
+    private void ejecutarReemplazo(Usuario usuario) throws PersistenciaException {
+        UsuarioMongoEntidad documentoActual = buscarDocumentoPorIdUsuario(usuario.getIdUsuario());
+        UsuarioMongoEntidad entidadMongo = adaptador.convertirAMongo(usuario);
+
+        // Clave: Resguardamos el ObjectId original para mitigar el error de inmutabilidad del _id
+        if (documentoActual != null) {
+            entidadMongo.setId(documentoActual.getId());
+        }
+
+        coleccion.replaceOne(Filters.eq("idUsuario", usuario.getIdUsuario()), entidadMongo);
+    }
+
+    /**
+     * Remueve físicamente el documento correspondiente de la colección.
+     */
+    private void ejecutarEliminacion(String idUsuario) {
+        coleccion.deleteOne(Filters.eq("idUsuario", idUsuario));
+    }
 }

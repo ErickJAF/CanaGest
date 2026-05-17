@@ -40,7 +40,6 @@ public class OrdenCompraPersistenciaAdapter {
         OrdenCompraMongoEntidad mongo = new OrdenCompraMongoEntidad();
         mongo.setId(convertirStringAObjectId(orden.getId()));
         mongo.setCodigoOrden(orden.getCodigoOrden());
-        mongo.setCodigoOrden(orden.getCodigoOrden());
         mongo.setFecha(orden.getFecha());
         mongo.setEstado(orden.getEstado());
         mongo.setTotal(orden.getTotal());

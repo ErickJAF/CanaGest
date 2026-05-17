@@ -11,6 +11,8 @@ import diseñadores.negocios.inventario.InventarioFacade;
 import diseñadores.negocios.objetos.Venta;
 import diseñadores.negocios.productos.IProductos;
 import diseñadores.negocios.productos.ProductosFacade;
+import excepciones.NegocioException;
+import excepciones.PersistenciaException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,25 +44,43 @@ public class VentasControl {
     this.serviciosInventario = serviciosInventario;
   }
 
-  public List<ProductoDTO> obtenerCatalogo() {
-    return serviciosProductos.obtenerCatalogo();
+  public List<ProductoDTO> obtenerCatalogo() throws NegocioException {
+    try {
+      return serviciosProductos.obtenerCatalogo();
+    } catch (NegocioException e) {
+      throw new NegocioException("Error al cargar el catálogo de venta de productos", e);
+    }
   }
 
-  public boolean existeProducto(EscanearProductoDTO dto) {
+  public boolean existeProducto(EscanearProductoDTO dto) throws NegocioException {
     validarDtoNoNulo(dto);
-    return serviciosProductos.existeProducto(dto);
+    try {
+      return serviciosProductos.existeProducto(dto);
+    } catch (NegocioException e) {
+      throw new NegocioException("Error al verificar la existencia del artículo", e);
+    }
   }
 
-  public boolean tieneStock(EscanearProductoDTO dto) {
+  public boolean tieneStock(EscanearProductoDTO dto) throws NegocioException {
     validarDtoNoNulo(dto);
-    return serviciosProductos.tieneStock(dto, 1);
+    try {
+      return serviciosProductos.tieneStock(dto, 1);
+    } catch (NegocioException e) {
+      throw new NegocioException("Error al validar disponibilidad de existencias", e);
+    }
   }
 
-  public ProductoDTO procesarProducto(VentaDTO venta, EscanearProductoDTO dto) {
+  public ProductoDTO procesarProducto(VentaDTO venta, EscanearProductoDTO dto) throws NegocioException {
     validarVentaNoNula(venta);
     validarDtoNoNulo(dto);
 
-    ProductoDTO producto = serviciosProductos.buscarProductoPorCodigo(dto);
+    ProductoDTO producto;
+    try {
+      producto = serviciosProductos.buscarProductoPorCodigo(dto);
+    } catch (NegocioException e) {
+      throw new NegocioException("Error al recuperar información del producto escaneado", e);
+    }
+
     if (producto == null) {
       return null;
     }
@@ -73,7 +93,7 @@ public class VentasControl {
     return producto;
   }
 
-  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO venta, PagoEfectivoDTO dto) {
+  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO venta, PagoEfectivoDTO dto) throws NegocioException {
     validarVentaProcesable(venta);
     validarPagoNoNulo(dto);
     validarMontoRecibido(dto.getMontoRecibido());
@@ -92,7 +112,7 @@ public class VentasControl {
     return ResultadoPagoDTO.aprobado(recibido.subtract(total));
   }
 
-  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO venta, PagoTarjetaDTO pagoTarjeta) {
+  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO venta, PagoTarjetaDTO pagoTarjeta) throws NegocioException {
     validarVentaProcesable(venta);
     validarPagoNoNulo(pagoTarjeta);
 
@@ -100,7 +120,7 @@ public class VentasControl {
     return ejecutarFlujoPagoElectronico(venta, diseñadores.infraestructura.dto.TipoPago.TARJETA, datos, TipoPago.TARJETA);
   }
 
-  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO venta, PagoTransferenciaDTO dto) {
+  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO venta, PagoTransferenciaDTO dto) throws NegocioException {
     validarVentaProcesable(venta);
     validarPagoNoNulo(dto);
 
@@ -108,7 +128,7 @@ public class VentasControl {
     return ejecutarFlujoPagoElectronico(venta, diseñadores.infraestructura.dto.TipoPago.TRANSACCION, datos, TipoPago.TRANSACCION);
   }
 
-  public ResultadoPagoDTO procesarPagoQr(VentaDTO venta, PagoQrDTO pagoQr) {
+  public ResultadoPagoDTO procesarPagoQr(VentaDTO venta, PagoQrDTO pagoQr) throws NegocioException {
     validarVentaProcesable(venta);
     validarPagoNoNulo(pagoQr);
 
@@ -116,7 +136,7 @@ public class VentasControl {
     return ejecutarFlujoPagoElectronico(venta, diseñadores.infraestructura.dto.TipoPago.QR, datos, TipoPago.QR);
   }
 
-  private ResultadoPagoDTO ejecutarFlujoPagoElectronico(VentaDTO v, diseñadores.infraestructura.dto.TipoPago tipoInfra, String datos, TipoPago tipoNegocio) {
+  private ResultadoPagoDTO ejecutarFlujoPagoElectronico(VentaDTO v, diseñadores.infraestructura.dto.TipoPago tipoInfra, String datos, TipoPago tipoNegocio) throws NegocioException {
     ResultadoPagoDTO resultado = procesarPagoElectronico(v, tipoInfra, datos);
 
     validarYAsignarTipoPago(v, resultado, tipoNegocio);
@@ -124,37 +144,44 @@ public class VentasControl {
     return resultado;
   }
 
-  ResultadoPagoDTO procesarPagoElectronico(VentaDTO venta, diseñadores.infraestructura.dto.TipoPago tipoInfra, String datos) {
-    String referencia = generarReferenciaPago();
-
-    RespuestaPagoDTO respuesta = serviciosPagos.procesarPago(tipoInfra, venta.getTotal(), referencia, datos);
-
-    return convertirAResultadoNegocio(respuesta);
+  ResultadoPagoDTO procesarPagoElectronico(VentaDTO venta, diseñadores.infraestructura.dto.TipoPago tipoInfra, String datos) throws NegocioException {
+    try {
+      String referencia = generarReferenciaPago();
+      RespuestaPagoDTO respuesta = serviciosPagos.procesarPago(tipoInfra, venta.getTotal(), referencia, datos);
+      return convertirAResultadoNegocio(respuesta);
+    } catch (Exception e) {
+      throw new NegocioException("Error de comunicación con la terminal o pasarela de pagos electrónicos", e);
+    }
   }
 
-  public void procesarFinalizarVenta(VentaDTO venta) {
+  public void procesarFinalizarVenta(VentaDTO venta) throws NegocioException {
     validarVentaProcesable(venta);
-
     validarVentaNoPagada(venta);
 
     marcarVentaComoPagada(venta);
-
     actualizarInventarioYAlertas(venta);
-
     registrarVentaSistema(venta);
   }
 
-  private void actualizarInventarioYAlertas(VentaDTO venta) {
+  private void actualizarInventarioYAlertas(VentaDTO venta) throws NegocioException {
     for (ItemVentaDTO item : venta.getItems()) {
-      serviciosProductos.descontarStock(item.getCodigo(), item.getCantidad());
+      try {
+        serviciosProductos.descontarStock(item.getCodigo(), item.getCantidad());
+      } catch (NegocioException e) {
+        throw new NegocioException("Fallo crítico al rebajar existencias del artículo: " + item.getCodigo(), e);
+      }
       verificarAlertaReabastecimiento(item.getCodigo());
     }
   }
 
   private void verificarAlertaReabastecimiento(String codigo) {
-    ProductoDTO estado = serviciosProductos.buscarProductoPorCodigo(new EscanearProductoDTO(codigo));
-    if (estado != null && estado.getStock() < STOCK_MINIMO) {
-      ejecutarProtocoloReabastecimiento(estado);
+    try {
+      ProductoDTO estado = serviciosProductos.buscarProductoPorCodigo(new EscanearProductoDTO(codigo));
+      if (estado != null && estado.getStock() < STOCK_MINIMO) {
+        ejecutarProtocoloReabastecimiento(estado);
+      }
+    } catch (NegocioException e) {
+      // Alerta secundaria: se registra silenciosamente o no bloquea la finalización de la venta
     }
   }
 
@@ -301,8 +328,12 @@ public class VentasControl {
     venta.setTipoPago(TipoPago.EFECTIVO);
   }
 
-  private void registrarVentaSistema(VentaDTO venta) {
-    Venta.guardar(venta);
+  private void registrarVentaSistema(VentaDTO venta) throws NegocioException {
+    try {
+      Venta.guardar(venta);
+    } catch (PersistenciaException e) {
+      throw new NegocioException("No se pudo asentar el registro definitivo de la venta", e);
+    }
   }
 
   private void registrarProductoEnVenta(VentaDTO venta, ProductoDTO producto) {
@@ -318,13 +349,21 @@ public class VentasControl {
     return "TK-" + System.currentTimeMillis();
   }
 
-  public void guardarProducto(ProductoDTO producto) {
+  public void guardarProducto(ProductoDTO producto) throws NegocioException {
     validarDatosProducto(producto);
-    serviciosProductos.guardarProducto(producto);
+    try {
+      serviciosProductos.guardarProducto(producto);
+    } catch (NegocioException e) {
+      throw new NegocioException("Error al registrar el producto auxiliar de venta", e);
+    }
   }
 
-  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
-    serviciosInventario.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
+  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) throws NegocioException {
+    try {
+      serviciosInventario.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
+    } catch (NegocioException e) {
+      throw new NegocioException("Error al modificar la parametrización de almacén desde Ventas", e);
+    }
   }
 
   private void validarDatosProducto(ProductoDTO producto) {
@@ -333,8 +372,12 @@ public class VentasControl {
     }
   }
 
-  public List<VentaDTO> obtenerHistorialVentas() {
-    return Venta.obtenerTodas();
+  public List<VentaDTO> obtenerHistorialVentas() throws NegocioException {
+    try {
+      return Venta.obtenerTodas();
+    } catch (PersistenciaException e) {
+      throw new NegocioException("Error al recuperar el histórico de transacciones", e);
+    }
   }
 
 }

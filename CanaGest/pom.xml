@@ -20,6 +20,8 @@
         <module>../diseniadores-nucleo</module>
         <module>../diseniadores-persistencia</module>
         <module>../diseniadores-presentacion</module>
+        <module>../diseniadores-dominio</module>
+        <module>../diseniadores-negocios-conteoinventario</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -1,162 +1,171 @@
 package diseñadores.persistencia.dao.impl;
 
+import adaptadores.VentaPersistenciaAdapter;
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.ReplaceOptions;
-import diseñadores.negocios.dto.ItemVentaDTO;
-import diseñadores.negocios.dto.VentaDTO;
 import diseñadores.persistencia.conexion.Conexion;
 import diseñadores.persistencia.dao.IVentaDAO;
-import org.bson.Document;
+import entidades.Venta;
+import entidadesmongo.VentaMongoEntidad;
+import excepciones.PersistenciaException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO encargado de administrar la persistencia de las Notas de Venta en MongoDB.
+ * Utiliza el patrón Singleton para la comunicación con la base de datos y
+ * aísla el acoplamiento estructural por medio de un adaptador perimetral de dominio.
+ * 
+ * @author ERICK
+ */
 public class VentaDAOImpl implements IVentaDAO {
 
-  private static final String COLECCION = "ventas";
-  private final MongoCollection<Document> coleccion;
+    private final MongoCollection<VentaMongoEntidad> coleccion;
+    private final VentaPersistenciaAdapter adaptador;
 
-  public VentaDAOImpl() {
-    this.coleccion = Conexion.getInstancia()
-      .getDatabase()
-      .getCollection(COLECCION);
-  }
-
-  @Override
-  public List<VentaDTO> obtenerTodas() {
-    List<VentaDTO> lista = new ArrayList<>();
-    for (Document doc : coleccion.find()) {
-      lista.add(convertirADTO(doc));
-    }
-    return lista;
-  }
-
-  @Override
-  public VentaDTO obtenerPorFolio(String folio) {
-    validarFolioRequerido(folio);
-    Document doc = buscarDocumentoPorFolio(folio);
-    return (doc != null) ? convertirADTO(doc) : null;
-  }
-
-  @Override
-  public void guardar(VentaDTO venta) {
-    validarDatosVenta(venta);
-    validarFolioExistente(venta.getFolio());
-    ejecutarInsercion(venta);
-  }
-
-  @Override
-  public void actualizar(VentaDTO venta) {
-    validarDatosVenta(venta);
-    validarVentaExiste(venta.getFolio());
-    ejecutarReemplazo(venta);
-  }
-
-  @Override
-  public void eliminar(String folio) {
-    validarFolioRequerido(folio);
-    validarVentaExiste(folio);
-    ejecutarEliminacion(folio);
-  }
-
-  private void validarFolioRequerido(String folio) {
-    if (folio == null || folio.isBlank()) {
-      throw new IllegalArgumentException("El folio de la venta es obligatorio");
-    }
-  }
-
-  private void validarDatosVenta(VentaDTO venta) {
-    if (venta == null) {
-      throw new IllegalArgumentException("La venta no puede ser nula");
-    }
-    validarFolioRequerido(venta.getFolio());
-    if (venta.getItems() == null || venta.getItems().isEmpty()) {
-      throw new IllegalArgumentException("La venta debe contener al menos un item");
-    }
-  }
-
-  private void validarFolioExistente(String folio) {
-    if (buscarDocumentoPorFolio(folio) != null) {
-      throw new IllegalStateException("Ya existe una venta registrada con el folio: " + folio);
-    }
-  }
-
-  private void validarVentaExiste(String folio) {
-    if (buscarDocumentoPorFolio(folio) == null) {
-      throw new IllegalStateException("La venta con folio " + folio + " no existe");
-    }
-  }
-
-  private Document buscarDocumentoPorFolio(String folio) {
-    return coleccion.find(Filters.eq("folio", folio)).first();
-  }
-
-  private void ejecutarInsercion(VentaDTO venta) {
-    coleccion.insertOne(convertirADocumento(venta));
-  }
-
-  private void ejecutarReemplazo(VentaDTO venta) {
-    coleccion.replaceOne(
-      Filters.eq("folio", venta.getFolio()),
-      convertirADocumento(venta),
-      new ReplaceOptions().upsert(true)
-    );
-  }
-
-  private void ejecutarEliminacion(String folio) {
-    coleccion.deleteOne(Filters.eq("folio", folio));
-  }
-
-  private VentaDTO convertirADTO(Document doc) {
-    VentaDTO dto = new VentaDTO();
-    dto.setFolio(doc.getString("folio"));
-    dto.setPagada(Boolean.TRUE.equals(doc.getBoolean("pagada")));
-    dto.setSubtotal(BigDecimal.valueOf(doc.getDouble("subtotal")));
-    dto.setIva(BigDecimal.valueOf(doc.getDouble("iva")));
-    dto.setTotal(BigDecimal.valueOf(doc.getDouble("total")));
-    dto.setTotalUnidades(doc.getInteger("totalUnidades", 0));
-    dto.setFecha(doc.getString("fecha"));
-    dto.setCajero(doc.getString("cajero"));
-
-    List<ItemVentaDTO> items = new ArrayList<>();
-    List<Document> itemDocs = doc.getList("items", Document.class);
-    if (itemDocs != null) {
-      for (Document itemDoc : itemDocs) {
-        items.add(new ItemVentaDTO(
-          itemDoc.getString("codigo"),
-          itemDoc.getString("nombre"),
-          BigDecimal.valueOf(itemDoc.getDouble("precioUnitario")),
-          itemDoc.getInteger("cantidad", 1)
-        ));
-      }
-    }
-    dto.setItems(items);
-    return dto;
-  }
-
-  private Document convertirADocumento(VentaDTO dto) {
-    List<Document> itemDocs = new ArrayList<>();
-    for (ItemVentaDTO item : dto.getItems()) {
-      itemDocs.add(new Document()
-        .append("codigo", item.getCodigo())
-        .append("nombre", item.getNombre())
-        .append("precioUnitario", item.getPrecioUnitario().doubleValue())
-        .append("cantidad", item.getCantidad())
-        .append("subtotal", item.getSubtotal().doubleValue())
-        .append("fecha", dto.getFecha())
-        .append("cajero", dto.getCajero())
-      );
+    /**
+     * Constructor por defecto que inicializa la colección tipada de MongoDB para Ventas
+     * y asocia el adaptador de persistencia correspondiente.
+     */
+    public VentaDAOImpl() {
+        this.coleccion = Conexion.getInstancia().obtenerColeccionVentas();
+        this.adaptador = new VentaPersistenciaAdapter();
     }
 
-    return new Document()
-      .append("folio", dto.getFolio())
-      .append("pagada", dto.isPagada())
-      .append("subtotal", dto.getSubtotal().doubleValue())
-      .append("iva", dto.getIva().doubleValue())
-      .append("total", dto.getTotal().doubleValue())
-      .append("totalUnidades", dto.getTotalUnidades())
-      .append("items", itemDocs);
-  }
+    @Override
+    public List<Venta> obtenerTodas() throws PersistenciaException {
+        try {
+            List<VentaMongoEntidad> entidadesMongo = new ArrayList<>();
+            coleccion.find().into(entidadesMongo);
+            return adaptador.convertirListaADominio(entidadesMongo);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible recuperar el historial de ventas desde MongoDB.", ex);
+        }
+    }
 
+    @Override
+    public Venta obtenerPorCodigoVenta(String codigoVenta) throws PersistenciaException {
+        validarCodigoVentaRequerido(codigoVenta);
+        try {
+            VentaMongoEntidad entidad = buscarDocumentoPorCodigo(codigoVenta);
+            return (entidad != null) ? adaptador.convertirADominio(entidad) : null;
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible buscar la venta solicitada por su código único.", ex);
+        }
+    }
+
+    @Override
+    public void guardar(Venta venta) throws PersistenciaException {
+        validarDatosVenta(venta);
+        validarCodigoVentaDisponible(venta.getCodigoVenta());
+        try {
+            ejecutarInsercion(venta);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible registrar la transacción de venta en MongoDB.", ex);
+        }
+    }
+
+    @Override
+    public void actualizar(Venta venta) throws PersistenciaException {
+        validarDatosVenta(venta);
+        validarVentaExiste(venta.getCodigoVenta());
+        try {
+            ejecutarReemplazo(venta);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible actualizar los datos de la venta especificada.", ex);
+        }
+    }
+
+    @Override
+    public void eliminar(String codigoVenta) throws PersistenciaException {
+        validarCodigoVentaRequerido(codigoVenta);
+        validarVentaExiste(codigoVenta);
+        try {
+            ejecutarEliminacion(codigoVenta);
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible eliminar la nota de venta de MongoDB.", ex);
+        }
+    }
+
+    /**
+     * Valida de manera defensiva que el código único comercial no sea nulo o inválido.
+     */
+    private void validarCodigoVentaRequerido(String codigoVenta) throws PersistenciaException {
+        if (codigoVenta == null || codigoVenta.isBlank()) {
+            throw new PersistenciaException("El código de la venta es un dato obligatorio.");
+        }
+    }
+
+    /**
+     * Analiza la consistencia básica de la venta de dominio antes de enviarla a la base de datos.
+     */
+    private void validarDatosVenta(Venta venta) throws PersistenciaException {
+        if (venta == null) {
+            throw new PersistenciaException("La entidad de venta a procesar no puede ser nula.");
+        }
+        validarCodigoVentaRequerido(venta.getCodigoVenta());
+        if (venta.getDetalles() == null || venta.getDetalles().isEmpty()) {
+            throw new PersistenciaException("No se puede procesar una venta sin artículos en su desglose de detalles.");
+        }
+        if (venta.getTotal() < 0) {
+            throw new PersistenciaException("El valor total de la venta debe ser una cantidad positiva.");
+        }
+    }
+
+    /**
+     * Asegura la inexistencia del código de venta para prevenir sobreescrituras en inserciones.
+     */
+    private void validarCodigoVentaDisponible(String codigoVenta) throws PersistenciaException {
+        if (buscarDocumentoPorCodigo(codigoVenta) != null) {
+            throw new PersistenciaException("El código de venta '" + codigoVenta + "' ya se encuentra registrado.");
+        }
+    }
+
+    /**
+     * Comprueba la existencia física de la venta para poder dar paso a modificaciones o bajas.
+     */
+    private void validarVentaExiste(String codigoVenta) throws PersistenciaException {
+        if (buscarDocumentoPorCodigo(codigoVenta) == null) {
+            throw new PersistenciaException("La nota de venta con código '" + codigoVenta + "' no existe en el sistema.");
+        }
+    }
+
+    /**
+     * Consulta el almacén de datos buscando coincidencia exacta por el atributo de negocio "codigoVenta".
+     */
+    private VentaMongoEntidad buscarDocumentoPorCodigo(String codigoVenta) {
+        return coleccion.find(Filters.eq("codigoVenta", codigoVenta.trim())).first();
+    }
+
+    /**
+     * Transforma el objeto de dominio e inyecta el nuevo documento de venta de forma atómica.
+     */
+    private void ejecutarInsercion(Venta venta) throws PersistenciaException {
+        VentaMongoEntidad entidadMongo = adaptador.convertirAMongo(venta);
+        coleccion.insertOne(entidadMongo);
+    }
+
+    /**
+     * Reemplaza el documento en cascada conservando el ciclo de vida del ObjectId técnico.
+     */
+    private void ejecutarReemplazo(Venta venta) throws PersistenciaException {
+        VentaMongoEntidad documentoActual = buscarDocumentoPorCodigo(venta.getCodigoVenta());
+        VentaMongoEntidad entidadMongo = adaptador.convertirAMongo(venta);
+
+        // Clave: Conservamos el _id hexadecimal original para no violar restricciones de inmutabilidad
+        if (documentoActual != null) {
+            entidadMongo.setId(documentoActual.getId());
+        }
+
+        coleccion.replaceOne(Filters.eq("codigoVenta", venta.getCodigoVenta()), entidadMongo);
+    }
+
+    /**
+     * Remueve físicamente el documento mapeado de la colección por medio de filtros BSON.
+     */
+    private void ejecutarEliminacion(String codigoVenta) {
+        coleccion.deleteOne(Filters.eq("codigoVenta", codigoVenta));
+    }
 }

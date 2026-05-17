@@ -2,6 +2,7 @@ package diseñadores.negocios.productos;
 
 import diseñadores.negocios.dto.EscanearProductoDTO;
 import diseñadores.negocios.dto.ProductoDTO;
+import excepciones.NegocioException;
 import java.util.List;
 
 public class ProductosFacade implements IProductos {
@@ -17,43 +18,42 @@ public class ProductosFacade implements IProductos {
   }
 
   @Override
-  public List<ProductoDTO> obtenerCatalogo() {
+  public List<ProductoDTO> obtenerCatalogo() throws NegocioException {
     return control.obtenerCatalogo();
   }
 
   @Override
-  public ProductoDTO buscarProductoPorCodigo(EscanearProductoDTO dto) {
+  public ProductoDTO buscarProductoPorCodigo(EscanearProductoDTO dto) throws NegocioException {
     return control.buscarProductoPorCodigo(dto);
   }
 
   @Override
-  public boolean existeProducto(EscanearProductoDTO dto) {
+  public boolean existeProducto(EscanearProductoDTO dto) throws NegocioException {
     return control.existeProducto(dto);
   }
 
   @Override
-  public boolean tieneStock(EscanearProductoDTO dto, int cantidad) {
+  public boolean tieneStock(EscanearProductoDTO dto, int cantidad) throws NegocioException {
     return control.tieneStock(dto, cantidad);
   }
 
   @Override
-  public void descontarStock(String codigo, int cantidad) {
+  public void descontarStock(String codigo, int cantidad) throws NegocioException {
     control.descontarStock(codigo, cantidad);
   }
 
   @Override
-  public void guardarProducto(ProductoDTO producto) {
+  public void guardarProducto(ProductoDTO producto) throws NegocioException {
     control.guardarProducto(producto);
   }
 
   @Override
-  public void actualizarProducto(ProductoDTO producto) {
+  public void actualizarProducto(ProductoDTO producto) throws NegocioException {
     control.actualizarProducto(producto);
   }
 
   @Override
-  public void eliminarProducto(String codigo) {
+  public void eliminarProducto(String codigo) throws NegocioException {
     control.eliminarProducto(codigo);
   }
-
 }

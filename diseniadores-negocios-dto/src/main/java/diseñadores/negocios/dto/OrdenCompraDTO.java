@@ -1,91 +1,106 @@
 package diseñadores.negocios.dto;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OrdenCompraDTO {
 
-  private String numero;
-  private String fecha;
-  private ProveedorDTO proveedor;
-  private String estado;
-  private int cantidadProductos;
-  private BigDecimal total;
+    private String numero;
+    private String fecha;
+    private String estado;
+    private BigDecimal total;
+    private ProveedorDTO proveedor;
+    private UsuarioDTO usuario;
+    private List<DetalleOrdenCompraDTO> productos;
 
-  public OrdenCompraDTO() {
-  }
+    public OrdenCompraDTO() {
+        this.productos = new ArrayList<>();
+    }
 
-  public OrdenCompraDTO(String numero, String fecha, ProveedorDTO proveedor, String estado, int cantidadProductos, BigDecimal total) {
-    this.numero = numero;
-    this.fecha = fecha;
-    this.proveedor = proveedor;
-    this.estado = estado;
-    this.cantidadProductos = cantidadProductos;
-    this.total = total;
-  }
+    public OrdenCompraDTO(String numero, String fecha, String estado, BigDecimal total, ProveedorDTO proveedor, UsuarioDTO usuario, List<DetalleOrdenCompraDTO> productos) {
+        this.numero = numero;
+        this.fecha = fecha;
+        this.estado = estado;
+        this.total = total;
+        this.proveedor = proveedor;
+        this.usuario = usuario;
+        this.productos = productos;
+    }
+    
+    public OrdenCompraDTO(String numero, String fecha, ProveedorDTO proveedor, String estado, int cantidad, BigDecimal total) {
+        this.numero = numero;
+        this.fecha = fecha;
+        this.proveedor = proveedor;
+        this.estado = estado;
+        this.total = total;
+        this.productos = new ArrayList<>();
+        // Como este constructor viejo no pedía usuario, le creamos uno por defecto temporal
+        this.usuario = new UsuarioDTO("Sistema", "1234", UsuarioRol.ADMINISTRADOR);
+    }
 
-  public String getNumero() {
-    return numero;
-  }
+    public String getNumero() {
+        return numero;
+    }
 
-  public void setNumero(String numero) {
-    this.numero = numero;
-  }
+    public void setNumero(String numero) {
+        this.numero = numero;
+    }
 
-  public String getFecha() {
-    return fecha;
-  }
+    public String getFecha() {
+        return fecha;
+    }
 
-  public void setFecha(String fecha) {
-    this.fecha = fecha;
-  }
+    public void setFecha(String fecha) {
+        this.fecha = fecha;
+    }
 
-  public ProveedorDTO getProveedor() {
-    return proveedor;
-  }
+    public String getEstado() {
+        return estado;
+    }
 
-  public void setProveedor(ProveedorDTO proveedor) {
-    this.proveedor = proveedor;
-  }
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 
-  public String getEstado() {
-    return estado;
-  }
+    public BigDecimal getTotal() {
+        return total;
+    }
 
-  public void setEstado(String estado) {
-    this.estado = estado;
-  }
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
 
-  public int getCantidadProductos() {
-    return cantidadProductos;
-  }
+    public ProveedorDTO getProveedor() {
+        return proveedor;
+    }
 
-  public void setCantidadProductos(int cantidadProductos) {
-    this.cantidadProductos = cantidadProductos;
-  }
+    public void setProveedor(ProveedorDTO proveedor) {
+        this.proveedor = proveedor;
+    }
 
-  public BigDecimal getTotal() {
-    return total;
-  }
+    public UsuarioDTO getUsuario() {
+        return usuario;
+    }
 
-  public void setTotal(BigDecimal total) {
-    this.total = total;
-  }
+    public void setUsuario(UsuarioDTO usuario) {
+        this.usuario = usuario;
+    }
 
-  public String getProveedorNombre() {
-    return proveedor != null ? proveedor.getNombre() : "";
-  }
+    public List<DetalleOrdenCompraDTO> getProductos() {
+        return productos;
+    }
 
-  public int getProductos() {
-    return cantidadProductos;
-  }
+    public void setProductos(List<DetalleOrdenCompraDTO> productos) {
+        this.productos = productos;
+    }
+    
+    public int getCantidadProductos() {
+        return this.productos != null ? this.productos.size() : 0;
+    }
 
-  public void setProductos(int productos) {
-    this.cantidadProductos = productos;
-  }
-
-  @Override
-  public String toString() {
-    return "OrdenCompraDTO{" + "numero=" + numero + ", fecha=" + fecha + ", proveedor=" + proveedor + ", estado=" + estado + ", cantidadProductos=" + cantidadProductos + ", total=" + total + '}';
-  }
-
+    @Override
+    public String toString() {
+        return "OrdenCompraDTO{" + "numero=" + numero + ", fecha=" + fecha + ", estado=" + estado + ", total=" + total + ", proveedor=" + proveedor + ", usuario=" + usuario + ", productos=" + productos + '}';
+    }
 }

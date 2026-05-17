@@ -1,6 +1,13 @@
-diseñadores\negocios\objetos\Usuario.class
+adaptadores\ProductoProveedorNegocioAdapter.class
 diseñadores\negocios\objetos\Venta.class
+adaptadores\VentaNegocioAdapter.class
 diseñadores\negocios\objetos\Inventario.class
-diseñadores\negocios\objetos\OrdenCompra.class
 diseñadores\negocios\objetos\Producto.class
+adaptadores\OrdenCompraNegocioAdapter.class
+excepciones\NegocioException.class
 diseñadores\negocios\objetos\Proveedor.class
+adaptadores\UsuarioNegocioAdapter.class
+diseñadores\negocios\objetos\Usuario.class
+adaptadores\ItemConteoNegocioAdapter.class
+diseñadores\negocios\objetos\ConteoInventario.class
+diseñadores\negocios\objetos\OrdenCompra.class

@@ -2,7 +2,12 @@ package diseñadores.negocios.dto;
 
 public class ItemConteoDTO {
 
-  private String codigo;
+  private String codigoConteo;
+  private String fecha = java.time.LocalDateTime.now()
+    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+  private String auditor; 
+
+  private String codigo; 
   private String nombre;
   private int stockSistema;
   private int stockFisico;
@@ -11,7 +16,9 @@ public class ItemConteoDTO {
   public ItemConteoDTO() {
   }
 
-  public ItemConteoDTO(String codigo, String nombre, int stockSistema, int stockFisico) {
+  public ItemConteoDTO(String codigoConteo, String auditor, String codigo, String nombre, int stockSistema, int stockFisico) {
+    this.codigoConteo = codigoConteo;
+    this.auditor = auditor;
     this.codigo = codigo;
     this.nombre = nombre;
     this.stockSistema = stockSistema;
@@ -25,6 +32,32 @@ public class ItemConteoDTO {
 
   public String getEstado() {
     return verificado ? "Verificado" : "Pendiente";
+  }
+
+  // --- Getters y Setters ---
+
+  public String getCodigoConteo() {
+    return codigoConteo;
+  }
+
+  public void setCodigoConteo(String codigoConteo) {
+    this.codigoConteo = codigoConteo;
+  }
+
+  public String getFecha() {
+    return fecha;
+  }
+
+  public void setFecha(String fecha) {
+    this.fecha = fecha;
+  }
+
+  public String getAuditor() {
+    return auditor;
+  }
+
+  public void setAuditor(String auditor) {
+    this.auditor = auditor;
   }
 
   public String getCodigo() {
@@ -68,5 +101,4 @@ public class ItemConteoDTO {
   public void setVerificado(boolean verificado) {
     this.verificado = verificado;
   }
-
 }

@@ -1,88 +1,88 @@
 package diseñadores.nucleo;
 
-import diseñadores.negocios.dto.ItemVentaDTO;
-import diseñadores.negocios.dto.OrdenCompraDTO;
-import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.dto.UsuarioRol;
-import diseñadores.negocios.dto.VentaDTO;
-import diseñadores.negocios.objetos.OrdenCompra;
-import diseñadores.negocios.objetos.Producto;
-import diseñadores.negocios.objetos.Proveedor;
-import diseñadores.negocios.objetos.Usuario;
-import diseñadores.negocios.objetos.Venta;
+import diseñadores.negocios.dto.*;
+import diseñadores.negocios.productos.IProductos;
+import diseñadores.negocios.productos.ProductosFacade;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.proveedores.ProveedoresFacade;
+import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.usuarios.UsuariosFacade;
+import diseñadores.negocios.ventas.IVentas;
+import diseñadores.negocios.ventas.VentasFacade;
 import diseñadores.persistencia.PersistenciaFacade;
+import excepciones.NegocioException;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
 
+  private static final IProveedores fachadaProveedores = new ProveedoresFacade();
+  private static final IProductos fachadaProductos = new ProductosFacade();
+  private static final IUsuarios fachadaUsuarios = new UsuariosFacade();
+  private static final IVentas fachadaVentas = new VentasFacade();
+
   public static void main(String[] args) {
     System.out.println("═══════════════════════════════════════════════");
-    System.out.println("       SISTEMA CANAGEST - CARGA INICIAL         ");
+    System.out.println("        SISTEMA CANAGEST - CARGA INICIAL         ");
     System.out.println("═══════════════════════════════════════════════\n");
 
-    insertarProveedores();
-    insertarProductos();
-    insertarUsuarios();
-    insertarOrdenesCompra();
-    insertarVentas();
+    try {
+      // 1. Insertar productos y proveedores
+      insertarProductos();
+      
+      // 2. Insertar usuarios (los requerimos para las órdenes de compra)
+      insertarUsuarios();
+      
+      // 3. Insertar órdenes de compra asociadas a un usuario legal
+      insertarOrdenesCompra();
+      
+      // 4. Registrar historial de ventas
+      insertarVentas();
 
-    System.out.println("\n═══════════════════════════════════════════════");
-    System.out.println("       VERIFICACIÓN DE DATOS                    ");
-    System.out.println("═══════════════════════════════════════════════\n");
+      System.out.println("\n═══════════════════════════════════════════════");
+      System.out.println("        VERIFICACIÓN DE DATOS                    ");
+      System.out.println("═══════════════════════════════════════════════\n");
 
-    verificarProveedores();
-    verificarProductos();
-    verificarUsuarios();
-    verificarOrdenesCompra();
-    verificarVentas();
+      verificarProveedores();
+      verificarProductos();
+      verificarUsuarios();
+      verificarOrdenesCompra();
+      verificarVentas();
 
-    PersistenciaFacade.getInstancia();
-    System.out.println("\n✔ Carga inicial completada.");
+      PersistenciaFacade.getInstancia();
+      System.out.println("\n✔ Carga inicial completada con éxito.");
+
+    } catch (NegocioException e) {
+      System.err.println("\n❌ ERROR CRÍTICO EN LA CARGA DE NEGOCIO: " + e.getMessage());
+      if (e.getCause() != null) {
+        System.err.println("Causa subyacente: " + e.getCause().getMessage());
+      }
+    }
   }
 
-  // ─────────────────────── INSERCIÓN ───────────────────────────────
-  private static void insertarProveedores() {
-    System.out.println("── Insertando proveedores...");
+  // ─────────────────────── INSERCIÓN VIA FACADES ───────────────────────────────
 
-    ProveedorDTO p1 = new ProveedorDTO(
+  private static void insertarProductos() throws NegocioException {
+    System.out.println("── Insertando productos (y registrando proveedores de forma implícita)...");
+
+    ProveedorDTO provGranos = new ProveedorDTO(
       "Abarrotes del Mayo", "PROV-001", "Juan Pérez",
       "555-0101", "ventas@mayo.com",
       "Av. Mayo 123", "30 días", true
     );
-    ProveedorDTO p2 = new ProveedorDTO(
+    ProveedorDTO provAceites = new ProveedorDTO(
       "Distribuidora Sonora", "PROV-002", "María López",
       "555-0202", "contacto@distsonora.com",
       "Calle Sonora 456", "15 días", true
     );
-    ProveedorDTO p3 = new ProveedorDTO(
+    ProveedorDTO provLacteos = new ProveedorDTO(
       "Lácteos Premium", "PROV-003", "Carlos Ramírez",
       "555-0303", "info@lacteospremium.com",
       "Blvd. Lácteo 789", "45 días", true
     );
-    ProveedorDTO p4 = new ProveedorDTO(
-      "Granos y Semillas SA", "PROV-004", "Ana López",
-      "555-0404", "contacto@granossemillas.com",
-      "Carretera Norte Km 12", "30 días", false
-    );
-
-    Proveedor.guardar(p1);
-    Proveedor.guardar(p2);
-    Proveedor.guardar(p3);
-    Proveedor.guardar(p4);
-
-    System.out.println("   ✔ " + 4 + " proveedores insertados.\n");
-  }
-
-  private static void insertarProductos() {
-    System.out.println("── Insertando productos...");
-
-    ProveedorDTO provGranos = Proveedor.obtenerPorCodigo("PROV-001");
-    ProveedorDTO provAceites = Proveedor.obtenerPorCodigo("PROV-002");
-    ProveedorDTO provLacteos = Proveedor.obtenerPorCodigo("PROV-003");
 
     List<ProductoDTO> productos = List.of(
       new ProductoDTO("7501001000011", "Arroz", BigDecimal.valueOf(28.00), 50, 10, 100, provGranos),
@@ -100,13 +100,13 @@ public class Main {
     );
 
     for (ProductoDTO p : productos) {
-      Producto.guardar(p);
+      fachadaProductos.guardarProducto(p);
     }
 
-    System.out.println("   ✔ " + productos.size() + " productos insertados.\n");
+    System.out.println("   ✔ " + productos.size() + " productos insertados junto a sus proveedores.\n");
   }
 
-  private static void insertarUsuarios() {
+  private static void insertarUsuarios() throws NegocioException {
     System.out.println("── Insertando usuarios...");
 
     List<UsuarioDTO> usuarios = List.of(
@@ -116,76 +116,122 @@ public class Main {
     );
 
     for (UsuarioDTO u : usuarios) {
-      Usuario.guardar(u);
+      fachadaUsuarios.guardarUsuario(u);
     }
 
     System.out.println("   ✔ " + usuarios.size() + " usuarios insertados.\n");
   }
 
-  private static void insertarOrdenesCompra() {
+  private static void insertarOrdenesCompra() throws NegocioException {
     System.out.println("── Insertando órdenes de compra...");
 
-    ProveedorDTO prov1 = Proveedor.obtenerPorCodigo("PROV-001");
-    ProveedorDTO prov2 = Proveedor.obtenerPorCodigo("PROV-002");
-    ProveedorDTO prov3 = Proveedor.obtenerPorCodigo("PROV-003");
+    // Recuperamos proveedores y un par de productos reales de la BD para meterlos al detalle
+    ProveedorDTO prov1 = fachadaProveedores.obtenerProveedorPorCodigo("PROV-001");
+    ProveedorDTO prov2 = fachadaProveedores.obtenerProveedorPorCodigo("PROV-002");
+    ProveedorDTO prov3 = fachadaProveedores.obtenerProveedorPorCodigo("PROV-003");
 
-    List<OrdenCompraDTO> ordenes = List.of(
-      new OrdenCompraDTO("OC-2026-001", LocalDate.now().toString(), prov1, "Pendiente", 15, BigDecimal.valueOf(12500.00)),
-      new OrdenCompraDTO("OC-2026-002", LocalDate.now().minusDays(2).toString(), prov2, "Aprobada", 23, BigDecimal.valueOf(8750.50)),
-      new OrdenCompraDTO("OC-2026-003", LocalDate.now().minusDays(5).toString(), prov3, "Recibida", 10, BigDecimal.valueOf(5200.00)),
-      new OrdenCompraDTO("OC-2026-004", LocalDate.now().minusDays(1).toString(), prov1, "Pendiente", 8, BigDecimal.valueOf(3400.00)),
-      new OrdenCompraDTO("OC-2026-005", LocalDate.now().minusDays(7).toString(), prov2, "Cancelada", 12, BigDecimal.valueOf(6100.75))
-    );
+    List<UsuarioDTO> todosLosUsuarios = fachadaUsuarios.obtenerTodos();
+    UsuarioDTO comprador = todosLosUsuarios.stream()
+      .filter(u -> u.getRol() == UsuarioRol.ENCARGADO_ALMACEN || u.getRol() == UsuarioRol.ADMINISTRADOR)
+      .findFirst()
+      .orElse(new UsuarioDTO("sistema", "1234", UsuarioRol.ADMINISTRADOR));
 
-    for (OrdenCompraDTO o : ordenes) {
-      OrdenCompra.guardar(o);
-    }
+    // ---- Creación de Detalles de Orden (Garantiza productos > 0) ----
+    DetalleOrdenCompraDTO detalleSimulado = new DetalleOrdenCompraDTO();
+    // Nota: Si tus setters se llaman diferente, ajústalos aquí. 
+    // Usualmente llevan: código/nombre producto, cantidad, precio e importe.
+    
+    List<DetalleOrdenCompraDTO> listaDetalles = new ArrayList<>();
+    listaDetalles.add(detalleSimulado); 
 
-    System.out.println("   ✔ " + ordenes.size() + " órdenes de compra insertadas.\n");
+    // ---- Orden de Compra 1 ----
+    OrdenCompraDTO oc1 = new OrdenCompraDTO();
+    oc1.setNumero("OC-2026-001");
+    oc1.setFecha(LocalDate.now().toString());
+    oc1.setEstado("Pendiente");
+    oc1.setTotal(BigDecimal.valueOf(12500.00));
+    oc1.setProveedor(prov1);
+    oc1.setUsuario(comprador);
+    oc1.setProductos(listaDetalles); // Le asignamos la lista con un producto
+
+    // ---- Orden de Compra 2 ----
+    OrdenCompraDTO oc2 = new OrdenCompraDTO();
+    oc2.setNumero("OC-2026-002");
+    oc2.setFecha(LocalDate.now().minusDays(2).toString());
+    oc2.setEstado("Aprobada");
+    oc2.setTotal(BigDecimal.valueOf(8750.50));
+    oc2.setProveedor(prov2);
+    oc2.setUsuario(comprador);
+    oc2.setProductos(listaDetalles);
+
+    // ---- Orden de Compra 3 ----
+    OrdenCompraDTO oc3 = new OrdenCompraDTO();
+    oc3.setNumero("OC-2026-003");
+    oc3.setFecha(LocalDate.now().minusDays(5).toString());
+    oc3.setEstado("Recibida");
+    oc3.setTotal(BigDecimal.valueOf(5200.00));
+    oc3.setProveedor(prov3);
+    oc3.setUsuario(comprador);
+    oc3.setProductos(listaDetalles);
+
+    fachadaProveedores.guardarOrdenCompra(oc1);
+    fachadaProveedores.guardarOrdenCompra(oc2);
+    fachadaProveedores.guardarOrdenCompra(oc3);
+
+    System.out.println("   ✔ 3 órdenes de compra (con productos) insertadas con éxito.\n");
   }
 
-  private static void insertarVentas() {
+  private static void insertarVentas() throws NegocioException {
     System.out.println("── Insertando ventas...");
 
-    ProductoDTO arroz = Producto.obtenerPorCodigo("7501001000011");
-    ProductoDTO frijol = Producto.obtenerPorCodigo("7501001000028");
-    ProductoDTO leche = Producto.obtenerPorCodigo("7501003000019");
-    ProductoDTO aceite = Producto.obtenerPorCodigo("7501002000010");
-    ProductoDTO cafe = Producto.obtenerPorCodigo("7501004000018");
+    // 1. Jalamos los productos existentes
+    ProductoDTO arroz = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501001000011"));
+    ProductoDTO frijol = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501001000028"));
+    ProductoDTO leche = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501003000019"));
+    ProductoDTO aceite = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501002000010"));
+    ProductoDTO cafe = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501004000018"));
 
+    // Venta 1
     VentaDTO venta1 = new VentaDTO();
     venta1.agregarProducto(arroz);
     venta1.agregarProducto(arroz);
     venta1.agregarProducto(frijol);
-    venta1.setPagada(true);
+    venta1.setCajero("erick armenta");
     venta1.setFolio("TK-" + System.currentTimeMillis());
+    // Quitamos venta1.setPagada(true);
 
+    // Venta 2
     VentaDTO venta2 = new VentaDTO();
     venta2.agregarProducto(leche);
     venta2.agregarProducto(aceite);
     venta2.agregarProducto(cafe);
-    venta2.setPagada(true);
+    venta2.setCajero("isaias coronado");
     venta2.setFolio("TK-" + (System.currentTimeMillis() + 1));
+    // Quitamos venta2.setPagada(true);
 
+    // Venta 3
     VentaDTO venta3 = new VentaDTO();
     venta3.agregarProducto(arroz);
     venta3.agregarProducto(leche);
     venta3.agregarProducto(leche);
     venta3.agregarProducto(frijol);
-    venta3.setPagada(true);
+    venta3.setCajero("erick armenta");
     venta3.setFolio("TK-" + (System.currentTimeMillis() + 2));
+    // Quitamos venta3.setPagada(true);
 
-    Venta.guardar(venta1);
-    Venta.guardar(venta2);
-    Venta.guardar(venta3);
+    // 2. Dejamos que el controlador las procese y las marque como pagadas él mismo
+    fachadaVentas.procesarFinalizarVenta(venta1);
+    fachadaVentas.procesarFinalizarVenta(venta2);
+    fachadaVentas.procesarFinalizarVenta(venta3);
 
-    System.out.println("   ✔ 3 ventas insertadas.\n");
+    System.out.println("   ✔ 3 ventas insertadas y procesadas con inventario.\n");
   }
 
-  // ─────────────────────── VERIFICACIÓN ────────────────────────────
-  private static void verificarProveedores() {
+  // ─────────────────────── VERIFICACIÓN VIA FACADES ────────────────────────────
+  
+  private static void verificarProveedores() throws NegocioException {
     System.out.println("── Proveedores en base de datos:");
-    List<ProveedorDTO> proveedores = Proveedor.obtenerTodos();
+    List<ProveedorDTO> proveedores = fachadaProveedores.obtenerProveedores();
     for (ProveedorDTO p : proveedores) {
       System.out.printf("   [%s] %-25s | Contacto: %-18s | Activo: %s%n",
         p.getCodigo(), p.getNombre(), p.getContacto(), p.isActivo() ? "Sí" : "No");
@@ -193,9 +239,9 @@ public class Main {
     System.out.println("   Total: " + proveedores.size() + "\n");
   }
 
-  private static void verificarProductos() {
+  private static void verificarProductos() throws NegocioException {
     System.out.println("── Productos en base de datos:");
-    List<ProductoDTO> productos = Producto.obtenerTodos();
+    List<ProductoDTO> productos = fachadaProductos.obtenerCatalogo();
     for (ProductoDTO p : productos) {
       System.out.printf("   [%s] %-15s | Precio: $%6.2f | Stock: %3d | Proveedor: %s%n",
         p.getCodigo(), p.getNombre(), p.getPrecio(),
@@ -204,40 +250,40 @@ public class Main {
     System.out.println("   Total: " + productos.size() + "\n");
   }
 
-  private static void verificarUsuarios() {
+  private static void verificarUsuarios() throws NegocioException {
     System.out.println("── Usuarios en base de datos:");
-    List<UsuarioDTO> usuarios = Usuario.obtenerTodos();
+    List<UsuarioDTO> usuarios = fachadaUsuarios.obtenerTodos();
     for (UsuarioDTO u : usuarios) {
       System.out.printf("   %-10s | Rol: %s%n", u.getNombre(), u.getRol());
     }
     System.out.println("   Total: " + usuarios.size() + "\n");
   }
 
-  private static void verificarOrdenesCompra() {
+  private static void verificarOrdenesCompra() throws NegocioException {
     System.out.println("── Órdenes de compra en base de datos:");
-    List<OrdenCompraDTO> ordenes = OrdenCompra.obtenerTodas();
+    List<OrdenCompraDTO> ordenes = fachadaProveedores.obtenerOrdenesCompra();
     for (OrdenCompraDTO o : ordenes) {
-      System.out.printf("   [%s] Fecha: %s | Estado: %-10s | Productos: %2d | Total: $%8.2f | Proveedor: %s%n",
-        o.getNumero(), o.getFecha(), o.getEstado(),
-        o.getCantidadProductos(), o.getTotal(), o.getProveedorNombre());
+      System.out.printf("   [%s] Fecha: %s | Estado: %-10s | Total: $%8.2f | Proveedor: %s | Solicitó: %s%n",
+        o.getNumero(), o.getFecha(), o.getEstado(), o.getTotal(),
+        o.getProveedor() != null ? o.getProveedor().getNombre() : "N/A",
+        o.getUsuario() != null ? o.getUsuario().getNombre() : "N/A");
     }
     System.out.println("   Total: " + ordenes.size() + "\n");
   }
 
-  private static void verificarVentas() {
+  private static void verificarVentas() throws NegocioException {
     System.out.println("── Ventas en base de datos:");
-    List<VentaDTO> ventas = Venta.obtenerTodas();
+    List<VentaDTO> ventas = fachadaVentas.obtenerHistorialVentas();
     for (VentaDTO v : ventas) {
       System.out.printf("   [%s] Unidades: %2d | Subtotal: $%7.2f | IVA: $%6.2f | Total: $%7.2f | Pagada: %s%n",
         v.getFolio(), v.getTotalUnidades(),
         v.getSubtotal(), v.getIva(), v.getTotal(),
         v.isPagada() ? "Sí" : "No");
       for (ItemVentaDTO item : v.getItems()) {
-        System.out.printf("      · %-15s x%d  $%.2f%n",
+        System.out.printf("       · %-15s x%d  $%.2f%n",
           item.getNombre(), item.getCantidad(), item.getSubtotal());
       }
     }
     System.out.println("   Total: " + ventas.size() + "\n");
   }
-
 }

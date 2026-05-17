@@ -5,6 +5,7 @@ import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
+import excepciones.NegocioException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.swing.JOptionPane; // Por si deseas alertar directo, o puedes quitarlo
 
 public class VentasControl {
 
@@ -41,8 +43,20 @@ public class VentasControl {
     refrescarCatalogo();
   }
 
+  // Envoltura para lanzar RuntimeException si algo falla en el negocio
+  private void manejarError(Exception e) {
+    System.err.println("Error en operación de negocio: " + e.getMessage());
+    // Lanzamos RuntimeException para que pase el compilador sin pedir try-catch en las vistas
+    throw new RuntimeException(e.getMessage(), e);
+  }
+
   public Optional<UsuarioDTO> autenticar(String nombre, String contrasena) {
-    return usuariosFachada.autenticarse(nombre, contrasena);
+    try {
+      return usuariosFachada.autenticarse(nombre, contrasena);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return Optional.empty();
+    }
   }
 
   public IVentas getVentasFachada() {
@@ -66,55 +80,108 @@ public class VentasControl {
   }
 
   public List<ProveedorDTO> obtenerProveedores() {
-    return proveedoresFachada.obtenerProveedores();
+    try {
+      return proveedoresFachada.obtenerProveedores();
+    } catch (NegocioException e) {
+      manejarError(e);
+      return new ArrayList<>();
+    }
   }
 
   public int contarProveedoresActivos() {
-    return proveedoresFachada.contarProveedoresActivos();
+    try {
+      return proveedoresFachada.contarProveedoresActivos();
+    } catch (NegocioException e) {
+      manejarError(e);
+      return 0;
+    }
   }
 
   public void guardarProveedor(ProveedorDTO proveedor) {
-    proveedoresFachada.guardarProveedor(proveedor);
+    try {
+      proveedoresFachada.guardarProveedor(proveedor);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
   public void actualizarProveedor(ProveedorDTO proveedor) {
-    proveedoresFachada.actualizarProveedor(proveedor);
+    try {
+      proveedoresFachada.actualizarProveedor(proveedor);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
   public List<OrdenCompraDTO> obtenerOrdenesCompra() {
-    return proveedoresFachada.obtenerOrdenesCompra();
+    try {
+      return proveedoresFachada.obtenerOrdenesCompra();
+    } catch (NegocioException e) {
+      manejarError(e);
+      return new ArrayList<>();
+    }
   }
 
   public void guardarOrdenCompra(OrdenCompraDTO orden) {
-    proveedoresFachada.guardarOrdenCompra(orden);
+    try {
+      proveedoresFachada.guardarOrdenCompra(orden);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
   public void cambiarEstadoOrden(String numero, String nuevoEstado) {
-    proveedoresFachada.cambiarEstadoOrden(numero, nuevoEstado);
+    try {
+      proveedoresFachada.cambiarEstadoOrden(numero, nuevoEstado);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
   public List<ProductoDTO> obtenerProductosInventario() {
-    return inventarioFachada.obtenerTodos();
+    try {
+      return inventarioFachada.obtenerTodos();
+    } catch (NegocioException e) {
+      manejarError(e);
+      return new ArrayList<>();
+    }
   }
 
   public void ajustarStock(String codigo, int nuevoStockFisico) {
-    inventarioFachada.ajustarStock(codigo, nuevoStockFisico);
+    try {
+      inventarioFachada.ajustarStock(codigo, nuevoStockFisico);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
   public ResultadoEscaneo procesarEscaneo(String codigo) {
-    EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
-    return validarYProcesarProducto(dto);
+    try {
+      EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
+      return validarYProcesarProducto(dto);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return ResultadoEscaneo.NO_EXISTE;
+    }
   }
 
   public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
-    inventarioFachada.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
+    try {
+      inventarioFachada.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
   public void guardarProducto(ProductoDTO producto) {
-    ventasFachada.guardarProducto(producto);
+    try {
+      ventasFachada.guardarProducto(producto);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
-  private ResultadoEscaneo validarYProcesarProducto(EscanearProductoDTO dto) {
+  private ResultadoEscaneo validarYProcesarProducto(EscanearProductoDTO dto) throws NegocioException {
     if (!ventasFachada.existeProducto(dto)) {
       return ResultadoEscaneo.NO_EXISTE;
     }
@@ -124,6 +191,10 @@ public class VentasControl {
     ventasFachada.procesarProducto(ventaActual, dto);
     recalcularTotales();
     return ResultadoEscaneo.OK;
+  }
+
+  public void decrementerItem(ItemVentaDTO item) { // Mantenido nombre original
+    decrementarItem(item);
   }
 
   public void decrementarItem(ItemVentaDTO item) {
@@ -162,32 +233,66 @@ public class VentasControl {
   }
 
   public ResultadoPagoDTO procesarPagoEfectivo(PagoEfectivoDTO pagoDTO) {
-    return ventasFachada.procesarPagoEfectivo(ventaActual, pagoDTO);
+    try {
+      return ventasFachada.procesarPagoEfectivo(ventaActual, pagoDTO);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return null;
+    }
   }
 
   public ResultadoPagoDTO procesarPagoTarjeta(PagoTarjetaDTO pagoDTO) {
-    return ventasFachada.procesarPagoTarjeta(ventaActual, pagoDTO);
+    try {
+      return ventasFachada.procesarPagoTarjeta(ventaActual, pagoDTO);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return null;
+    }
   }
 
   public ResultadoPagoDTO procesarPagoCoDi(PagoQrDTO pagoDTO) {
-    return ventasFachada.procesarPagoQr(ventaActual, pagoDTO);
+    try {
+      return ventasFachada.procesarPagoQr(ventaActual, pagoDTO);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return null;
+    }
   }
 
   public ResultadoPagoDTO procesarPagoTransferencia(PagoTransferenciaDTO pagoDTO) {
-    return ventasFachada.procesarPagoTransferencia(ventaActual, pagoDTO);
+    try {
+      return ventasFachada.procesarPagoTransferencia(ventaActual, pagoDTO);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return null;
+    }
   }
 
   public BigDecimal calcularCambio(BigDecimal recibido) {
-    return ventasFachada.procesarCalcularCambio(ventaActual, recibido);
+    try {
+      return ventasFachada.procesarCalcularCambio(ventaActual, recibido);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return BigDecimal.ZERO;
+    }
   }
 
   public void finalizarVenta() {
-    ventaActual.setCajero(usuarioActivo.getNombre());
-    ventasFachada.procesarFinalizarVenta(ventaActual);
+    try {
+      ventaActual.setCajero(usuarioActivo.getNombre());
+      ventasFachada.procesarFinalizarVenta(ventaActual);
+    } catch (NegocioException e) {
+      manejarError(e);
+    }
   }
 
   public TicketDTO generarTicket(BigDecimal recibido) {
-    return ventasFachada.generarTicket(ventaActual, recibido);
+    try {
+      return ventasFachada.generarTicket(ventaActual, recibido);
+    } catch (NegocioException e) {
+      manejarError(e);
+      return null;
+    }
   }
 
   public TicketDTO generarTicket() {
@@ -213,8 +318,13 @@ public class VentasControl {
   }
 
   public List<ProductoDTO> refrescarCatalogo() {
-    this.catalogoProductos = ventasFachada.obtenerCatalogo();
-    return catalogoProductos;
+    try {
+      this.catalogoProductos = ventasFachada.obtenerCatalogo();
+      return catalogoProductos;
+    } catch (NegocioException e) {
+      this.catalogoProductos = new ArrayList<>();
+      return catalogoProductos;
+    }
   }
 
   public List<ProductoDTO> getCatalogo() {
@@ -261,7 +371,11 @@ public class VentasControl {
   }
 
   public List<VentaDTO> obtenerHistorialVentas() {
-    return ventasFachada.obtenerHistorialVentas();
+    try {
+      return ventasFachada.obtenerHistorialVentas();
+    } catch (NegocioException e) {
+      manejarError(e);
+      return new ArrayList<>();
+    }
   }
-
 }
