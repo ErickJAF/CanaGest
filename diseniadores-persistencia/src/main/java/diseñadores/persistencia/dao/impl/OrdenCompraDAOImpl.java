@@ -4,6 +4,11 @@ import adaptadores.OrdenCompraPersistenciaAdapter;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Accumulators;
+import java.util.Arrays;
 import diseñadores.persistencia.conexion.Conexion;
 import diseñadores.persistencia.dao.IOrdenCompraDAO;
 import entidades.OrdenCompra;
@@ -164,5 +169,37 @@ public class OrdenCompraDAOImpl implements IOrdenCompraDAO {
      */
     private void ejecutarEliminacion(String numero) {
         coleccion.deleteOne(Filters.eq("codigoOrden", numero));
+    }
+    @Override
+    public List<Document> obtenerConteoOrdenesPorProveedor() throws PersistenciaException {
+        try {
+            // 1. Definir la etapa de agrupación ($group)
+            // Asumiendo que tu proveedor está incrustado o tiene un campo para agrupar.
+            // Si proveedor es un objeto anidado, puedes usar "$proveedor.nombre". 
+            // Si solo guardas un ID o String, usa "$proveedor".
+            Bson etapaAgrupacion = Aggregates.group(
+                "$proveedor", // Campo por el cual vamos a agrupar
+                Accumulators.sum("totalOrdenes", 1) // Acumulador: suma 1 por cada documento encontrado
+            );
+
+            // 2. Crear el pipeline (lista de etapas)
+            List<Bson> pipeline = Arrays.asList(etapaAgrupacion);
+
+            // 3. Ejecutar la agregación
+            List<Document> resultados = new ArrayList<>();
+            
+            /* * NOTA IMPORTANTE: Tu colección es de tipo <OrdenCompraMongoEntidad>.
+             * Al hacer una agregación, la forma de los datos cambia (ya no es una Orden de Compra completa, 
+             * ahora es solo un _id de proveedor y un total). 
+             * Por eso debemos pasar 'Document.class' como segundo parámetro a aggregate() 
+             * para evitar un error de mapeo.
+             */
+            coleccion.aggregate(pipeline, Document.class).into(resultados);
+
+            return resultados;
+
+        } catch (MongoException ex) {
+            throw new PersistenciaException("No fue posible generar el reporte de órdenes por proveedor mediante aggregate.", ex);
+        }
     }
 }

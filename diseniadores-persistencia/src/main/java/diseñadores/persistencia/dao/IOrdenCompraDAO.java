@@ -3,6 +3,7 @@ package diseñadores.persistencia.dao;
 import entidades.OrdenCompra;
 import excepciones.PersistenciaException;
 import java.util.List;
+import org.bson.Document;
 
 /**
  * Interfaz que define las operaciones de persistencia permitidas para la gestión
@@ -47,4 +48,12 @@ public interface IOrdenCompraDAO {
      * @throws PersistenciaException Si la orden no existe o falla la base de datos.
      */
     void eliminar(String numero) throws PersistenciaException;
+    
+    /**
+     * Genera un reporte agrupando las órdenes de compra por proveedor y contando 
+     * cuántas órdenes tiene cada uno.
+     * * @return Lista de documentos con el nombre del proveedor y su total de órdenes.
+     * @throws PersistenciaException Si ocurre un error durante la agregación en MongoDB.
+     */
+    List<Document> obtenerConteoOrdenesPorProveedor() throws PersistenciaException;
 }
