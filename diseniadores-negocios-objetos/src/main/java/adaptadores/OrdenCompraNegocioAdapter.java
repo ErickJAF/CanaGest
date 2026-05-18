@@ -14,12 +14,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Adaptador de alta fidelidad. Cumple con el patrón DTO encapsulado,
- * procesando toda la información de la orden a través de un único objeto.
+ * Adaptador de negocio de alta fidelidad para la gestión de Órdenes de Compra.
+ * Facilita la conversión bidireccional entre los objetos de transferencia de datos (DTO)
+ * utilizados en la interfaz y las entidades puros del modelo de dominio.
  * * @author ERICK
+ * @version 1.0
  */
 public class OrdenCompraNegocioAdapter {
     
+    /**
+     * Convierte un objeto estructurado de tipo OrdenCompraDTO en una entidad
+     * pura del modelo de dominio.
+     * * @param dto El objeto OrdenCompraDTO proveniente de las capas superiores.
+     * @return Una entidad de dominio de tipo OrdenCompra mapeada, o null si el DTO es nulo.
+     */
     public OrdenCompra aDominio(OrdenCompraDTO dto) {
         if (dto == null) return null;
 
@@ -43,7 +51,7 @@ public class OrdenCompraNegocioAdapter {
             dominio.setProveedor(provRes);
         }
 
-        // 2. Mapeo del Usuario embebido desde el DTO (Usando getters del DTO)
+        // 2. Mapeo del Usuario embebido desde el DTO
         if (dto.getUsuario() != null) {
             String idUsuario = dto.getUsuario().getNombre().toLowerCase().trim();
             String nombreUsuario = dto.getUsuario().getNombre();
@@ -62,7 +70,7 @@ public class OrdenCompraNegocioAdapter {
         if (dto.getProductos() != null) {
             for (DetalleOrdenCompraDTO detDTO : dto.getProductos()) {
                 DetalleOrdenCompra detDom = new DetalleOrdenCompra();
-                detDom.setCantidad(detDTO.getCantidad());
+                detDom.setCantidad(detDTO.getCantidad()); // Línea corregida (sin propiedades fantasmas)
                 
                 if (detDTO.getSubtotal() != null) {
                     detDom.setSubtotal(detDTO.getSubtotal().doubleValue());
@@ -84,6 +92,12 @@ public class OrdenCompraNegocioAdapter {
         return dominio;
     }
 
+    /**
+     * Convierte una entidad pura del dominio en un objeto desacoplado de transferencia
+     * de datos (DTO) apto para su consumo en las pantallas gráficas.
+     * * @param dominio La entidad pura de negocio de tipo OrdenCompra.
+     * @return Un DTO estructurado de tipo OrdenCompraDTO, o null si la entidad es nula.
+     */
     public OrdenCompraDTO aDTO(OrdenCompra dominio) {
         if (dominio == null) return null;
 
@@ -111,7 +125,7 @@ public class OrdenCompraNegocioAdapter {
             try {
                 usrDTO.setRol(diseñadores.negocios.dto.UsuarioRol.valueOf(dominio.getUsuario().getRol()));
             } catch (Exception e) {
-                // Previene fallos si no coincide el Enum
+                // Resguardo silencioso en caso de inconsistencia con Enums
             }
             dto.setUsuario(usrDTO);
         }
@@ -138,6 +152,12 @@ public class OrdenCompraNegocioAdapter {
         return dto;
     }
     
+    /**
+     * Transforma una lista de entidades de dominio puro en una nueva lista
+     * equivalente de objetos de transferencia de datos (DTO).
+     * * @param ordenesDominio Lista de entidades puras de tipo OrdenCompra.
+     * @return Una lista procesada que contiene objetos OrdenCompraDTO.
+     */
     public List<OrdenCompraDTO> listaADTO(List<OrdenCompra> ordenesDominio) {
         List<OrdenCompraDTO> listaDTO = new ArrayList<>();
         if (ordenesDominio == null) return listaDTO;

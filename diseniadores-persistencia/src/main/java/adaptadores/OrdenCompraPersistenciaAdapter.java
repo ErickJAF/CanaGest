@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package adaptadores;
 
 import entidades.DetalleOrdenCompra;
@@ -20,19 +16,21 @@ import java.util.List;
 import org.bson.types.ObjectId;
 
 /**
- * Adapter encargado de procesar la conversión de Órdenes de Compra con su triple 
- * desnormalización incrustada (Usuario, Proveedor e Historial de Productos).
- * 
- * @author ERICK
+ * Adaptador de persistencia perimetral encargado de gestionar la conversión binaria
+ * y estructural entre entidades del dominio y los esquemas de entidades MongoDB.
+ * Procesa colecciones desnormalizadas incrustadas en cascada (Usuario, Proveedor y Productos).
+ * * @author ERICK
+ * @version 1.0
  */
 public class OrdenCompraPersistenciaAdapter {
 
     /**
-     * Convierte una orden de compra del dominio a entidad Mongo.
+     * Transforma una entidad pura de la capa de negocio/dominio en una entidad 
+     * estructurada compatible con el mapeo directo BSON en colecciones MongoDB.
      *
-     * @param orden orden de compra limpia.
-     * @return documento de orden de compra listo para guardarse.
-     * @throws PersistenciaException si el id tiene formato inválido.
+     * @param orden Instancia de la clase OrdenCompra del dominio técnico.
+     * @return Objeto mapeado OrdenCompraMongoEntidad listo para almacenamiento.
+     * @throws PersistenciaException Si la cadena identificadora del ID no cuenta con un formato ObjectId válido.
      */
     public OrdenCompraMongoEntidad convertirAMongo(OrdenCompra orden) throws PersistenciaException {
         if (orden == null) return null;
@@ -51,10 +49,11 @@ public class OrdenCompraPersistenciaAdapter {
     }
 
     /**
-     * Convierte una entidad de Mongo a un objeto orden de compra de dominio.
+     * Transforma una entidad documental tipada extraída desde MongoDB hacia un objeto 
+     * limpio de la capa de dominio utilizable por las reglas del negocio.
      *
-     * @param mongo entidad recuperada de Mongo.
-     * @return orden de compra limpia.
+     * @param mongo Entidad de persistencia mapeada OrdenCompraMongoEntidad.
+     * @return Instancia limpia reconstruida de tipo OrdenCompra.
      */
     public OrdenCompra convertirADominio(OrdenCompraMongoEntidad mongo) {
         if (mongo == null) return null;
@@ -73,10 +72,11 @@ public class OrdenCompraPersistenciaAdapter {
     }
 
     /**
-     * Convierte una lista de entidades de orden de compra a lista de dominio.
+     * Convierte una lista completa de entidades documentales nativas de MongoDB 
+     * en una lista estructurada compatible con objetos puros de la capa de dominio.
      *
-     * @param entidadesMongo lista de entidades.
-     * @return lista de ordenes limpias.
+     * @param entidadesMongo Lista de objetos provenientes de la persistencia OrdenCompraMongoEntidad.
+     * @return Lista dinámica procesada de entidades OrdenCompra.
      */
     public List<OrdenCompra> convertirListaADominio(List<OrdenCompraMongoEntidad> entidadesMongo) {
         List<OrdenCompra> lista = new ArrayList<>();
@@ -170,23 +170,24 @@ public class OrdenCompraPersistenciaAdapter {
     }
 
     /**
-     * Convierte una cadena de texto en un objeto ObjectId válido de Mongo.
+     * Convierte una cadena de texto plana (String hex) en un objeto ObjectId estructural nativo de MongoDB.
      *
-     * @param id cadena id.
-     * @return ObjectId.
-     * @throws PersistenciaException si falla el casteo.
+     * @param id Cadena representativa del identificador único de la orden.
+     * @return El objeto transformado ObjectId técnico.
+     * @throws PersistenciaException Si la cadena de caracteres posee un formato hexadecimal inválido.
      */
     public ObjectId convertirStringAObjectId(String id) throws PersistenciaException {
         if (id == null || id.isBlank()) return null;
-        if (!ObjectId.isValid(id)) throw new PersistenciaException("Id inváido para mapeo en Orden.");
+        if (!ObjectId.isValid(id)) throw new PersistenciaException("Id inválido para mapeo en Orden.");
         return new ObjectId(id);
     }
 
     /**
-     * Traduce un ObjectId técnico de Mongo en una representación de String simple.
+     * Traduce un objeto técnico ObjectId proveniente de MongoDB a una representación
+     * alfanumérica simple de tipo String.
      *
-     * @param id identificador ObjectId.
-     * @return id en String.
+     * @param id Identificador nativo de MongoDB de tipo ObjectId.
+     * @return Cadena hexadecimal simple equivalente al ID, o null si el objeto es nulo.
      */
     public String convertirObjectIdAString(ObjectId id) {
         return (id == null) ? null : id.toHexString();

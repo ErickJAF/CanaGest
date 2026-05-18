@@ -50,7 +50,7 @@ public class ProveedoresFacade implements IProveedores {
 
   @Override
   public void guardarOrdenCompra(OrdenCompraDTO orden) throws NegocioException {
-    control.guardarOrdenCompra(orden.getProveedor(), orden.getCantidadProductos(), orden.getTotal());
+    control.guardarOrdenCompra(orden.getProveedor(), orden.getCantidadProductos(), orden.getTotal(), orden.getProductos());
   }
 
   @Override

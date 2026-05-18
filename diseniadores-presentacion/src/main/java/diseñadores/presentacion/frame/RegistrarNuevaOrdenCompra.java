@@ -18,13 +18,16 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Cuadro de diálogo para registrar una nueva orden de compra en el sistema.
- * Calcula de forma automática el total en base a la cantidad y el producto del proveedor seleccionado.
+ * Cuadro de diálogo gráfico para registrar una nueva orden de compra en el sistema.
+ * Realiza el cálculo automático del total monetario en base a la cantidad ingresada
+ * y al producto ligado al proveedor seleccionado.
  * * @author icoro
+ * @version 1.0
  */
 public class RegistrarNuevaOrdenCompra extends JDialog {
 
@@ -40,9 +43,9 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
 
   /**
    * Constructor del diálogo para nueva orden de compra.
-   * * @param parent    Ventana padre que invoca el diálogo.
-   * @param control   Controlador principal para gestionar las persistencias y lógica.
-   * @param onSuccess Callback a ejecutar si la orden se guarda exitosamente.
+   * * @param parent    Ventana Frame padre que invoca este diálogo modal.
+   * @param control   Controlador de presentación para gestionar lógica de persistencia.
+   * @param onSuccess Callback (Runnable) a ejecutar si la orden se almacena con éxito.
    */
   public RegistrarNuevaOrdenCompra(JFrame parent, VentasControl control, Runnable onSuccess) {
     super(parent, "Nueva Orden de Compra", true);
@@ -114,7 +117,7 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
 
     tfCant = crearCampo();
     tfTotal = crearCampo();
-    tfTotal.setEditable(false); // El total se calcula automáticamente
+    tfTotal.setEditable(false); 
     tfTotal.setBackground(Colores.FONDO_GRIS_CLARO);
 
     panel.add(crearEtiqueta("Cantidad de productos"));
@@ -173,7 +176,7 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
   }
   
   /**
-   * Recalcula el campo del total basado en el precio unitario y la cantidad ingresada.
+   * Recalcula de forma interna el total basado en el precio unitario y la cantidad ingresada.
    */
   private void recalcularTotal() {
       try {
@@ -231,8 +234,9 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
         List<DetalleOrdenCompraDTO> listaDetalle = new ArrayList<>();
         listaDetalle.add(detalle);
 
-        // Generar la orden con los detalles asociados
-        OrdenCompraDTO nueva = new OrdenCompraDTO(null, null, "Pendiente", tot, prov, null, listaDetalle);
+        // CORRECCIÓN HISTÓRICA: Se añade la fecha actual del sistema en lugar de enviar null
+        String fechaHoy = LocalDate.now().toString();
+        OrdenCompraDTO nueva = new OrdenCompraDTO(null, fechaHoy, "Pendiente", tot, prov, control.getUsuarioActivo(), listaDetalle);
         
         control.guardarOrdenCompra(nueva);
         if (onSuccess != null) {
@@ -252,7 +256,7 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
   /**
    * Crea una etiqueta estandarizada para el formulario.
    * * @param texto Texto de la etiqueta.
-   * @return JLabel configurado.
+   * @return JLabel configurado con las fuentes globales.
    */
   private JLabel crearEtiqueta(String texto) {
     JLabel lbl = new JLabel(texto);
@@ -264,7 +268,7 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
 
   /**
    * Crea un campo de texto estandarizado para el formulario.
-   * * @return JTextField configurado.
+   * * @return JTextField configurado con bordes redondeados.
    */
   private JTextField crearCampo() {
     JTextField tf = new JTextField();
@@ -278,9 +282,9 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
   }
 
   /**
-   * Crea un botón estilizado con efectos hover.
+   * Crea un botón estilizado con efectos hover reactivos.
    * * @param texto Texto del botón.
-   * @return JButton configurado.
+   * @return JButton configurado con bordes redondeados.
    */
   private JButton crearBoton(String texto) {
     JButton btn = new JButton(texto) {

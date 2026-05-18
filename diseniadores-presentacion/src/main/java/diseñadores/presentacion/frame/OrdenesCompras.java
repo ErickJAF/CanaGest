@@ -1,5 +1,6 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.DetalleOrdenCompraDTO;
 import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Colores;
@@ -13,6 +14,12 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Pantalla principal Frame del catálogo modular para la administración de Órdenes de Compra.
+ * Facilita filtros avanzados interactivos en tiempo de ejecución basados en estados dinámicos.
+ * * @author icoro
+ * @version 1.0
+ */
 public class OrdenesCompras extends JFrame {
 
   private final JFrame menuOrigen;
@@ -23,6 +30,11 @@ public class OrdenesCompras extends JFrame {
   private String filtroActual = "Todas";
   private JPanel tabsPanel;
 
+  /**
+   * Constructor del catálogo maestro de órdenes de compra.
+   * * @param menuOrigen JFrame principal para retorno del flujo de navegación.
+   * @param control    Controlador unificado de la capa de presentación.
+   */
   public OrdenesCompras(JFrame menuOrigen, VentasControl control) {
     this.menuOrigen = menuOrigen;
     this.control = control;
@@ -37,7 +49,6 @@ public class OrdenesCompras extends JFrame {
         g.setColor(Colores.FONDO_AMARILLO);
         g.fillRect(0, 0, getWidth(), getHeight());
       }
-
     };
     root.setOpaque(false);
     root.add(buildTopBar(), BorderLayout.NORTH);
@@ -125,7 +136,6 @@ public class OrdenesCompras extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 14, 14));
         super.paintComponent(g2d);
       }
-
     };
     barFiltros.setOpaque(false);
     barFiltros.setBorder(new EmptyBorder(12, 16, 12, 16));
@@ -207,8 +217,12 @@ public class OrdenesCompras extends JFrame {
 
   private void recargarOrdenes() {
     ordenes.clear();
-    ordenes.addAll(control.obtenerOrdenesCompra());
+  ordenes.addAll(control.obtenerOrdenesCompra());
     construirOrdenes(filtrar());
+  }
+
+  private List<OrdenCompraDTO> obtainPurchaseOrdersWrapper() {
+      return control.obtenerOrdenesCompra();
   }
 
   private JPanel cardOrden(OrdenCompraDTO o) {
@@ -223,7 +237,6 @@ public class OrdenesCompras extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 16, 16));
         super.paintComponent(g2d);
       }
-
     };
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(18, 20, 18, 20));
@@ -291,7 +304,10 @@ public class OrdenesCompras extends JFrame {
     datos.setBorder(new EmptyBorder(8, 0, 4, 0));
     datos.add(crearFilaDato("Proveedor: ", o.getProveedorNombre()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(crearFilaDato("Productos: ", o.getProductos() + " items"));
+    
+    // CORRECCIÓN: Conteo dinámico y real en lugar de imprimir la conversión nativa a String
+    int conteoItems = o.getProductos() != null ? o.getProductos().size() : 0;
+    datos.add(crearFilaDato("Productos: ", conteoItems + " items"));
 
     JLabel lblTotal = new JLabel(String.format("$%.2f", o.getTotal().doubleValue()));
     lblTotal.setFont(Fuentes.b(24));
@@ -328,7 +344,6 @@ public class OrdenesCompras extends JFrame {
         g.setColor(Colores.BORDE_GRIS);
         g.drawLine(0, 0, getWidth(), 0);
       }
-
     };
     sep.setOpaque(false);
     sep.setPreferredSize(new Dimension(0, 1));
@@ -400,7 +415,6 @@ public class OrdenesCompras extends JFrame {
             ov = false;
             repaint();
           }
-
         });
       }
 
@@ -419,7 +433,6 @@ public class OrdenesCompras extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
         super.paintComponent(g2d);
       }
-
     };
     b.putClientProperty("selected", seleccionado);
     b.setFont(Fuentes.b(13));
@@ -457,7 +470,6 @@ public class OrdenesCompras extends JFrame {
             ov = false;
             repaint();
           }
-
         });
       }
 
@@ -469,7 +481,6 @@ public class OrdenesCompras extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
-
     };
     b.setForeground(fg);
     b.setFont(Fuentes.b(14));
@@ -498,7 +509,6 @@ public class OrdenesCompras extends JFrame {
             ov = false;
             repaint();
           }
-
         });
       }
 
@@ -510,11 +520,9 @@ public class OrdenesCompras extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
         super.paintComponent(g2d);
       }
-
     };
     b.setForeground(blanco ? Colores.BLANCO : Colores.TEXTO_OSCURO);
     b.setFont(Fuentes.b(13));
     return b;
   }
-
 }

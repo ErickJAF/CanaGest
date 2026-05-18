@@ -66,6 +66,11 @@ public class Conexion {
             // Guardamos las instancias en los atributos del objeto
             this.mongoClient = MongoClients.create(configuracion);
             this.database = this.mongoClient.getDatabase(NOMBRE_BASE_DATOS);
+            // AGREGA ESTAS LÍNEAS DE RASTREO:
+    System.out.println("=================================================");
+    System.out.println("¡CONEXIÓN EN VIVO LOGRADA CON MONGODB!");
+    System.out.println("Base de datos en uso activo: " + this.database.getName());
+    System.out.println("=================================================");
         } catch (Exception e) {
             System.err.println("Error al conectar con MongoDB: " + e.getMessage());
         }

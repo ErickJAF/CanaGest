@@ -28,7 +28,7 @@ public class ConsolidarInventario extends JFrame {
     this.control = control;
 
     initFrame();
-    cargarItemsDesdeSistema();
+//    cargarItemsDesdeSistema();
     initComponents();
   }
 
@@ -47,14 +47,14 @@ public class ConsolidarInventario extends JFrame {
 
     });
   }
-
-  private void cargarItemsDesdeSistema() {
-    items.clear();
-    List<ProductoDTO> productos = control.obtenerProductosInventario();
-    for (ProductoDTO p : productos) {
-      items.add(new ItemConteoDTO(p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()));
-    }
-  }
+//
+//  private void cargarItemsDesdeSistema() {
+//    items.clear();
+//    List<ProductoDTO> productos = control.obtenerProductosInventario();
+//    for (ProductoDTO p : productos) {
+//      items.add(new ItemConteoDTO(p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()));
+//    }
+//  }
 
   private void initComponents() {
     JPanel root = new JPanel(new BorderLayout()) {

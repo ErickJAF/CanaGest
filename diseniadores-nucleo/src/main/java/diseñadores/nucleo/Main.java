@@ -17,6 +17,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase principal de ejecución encargada de inicializar el ecosistema CanaGest.
+ * Actúa como un módulo de carga inicial (seeding) que puebla de forma controlada
+ * colecciones lógicas en MongoDB a través de Fachadas de negocio.
+ * * @author icoro
+ * @version 1.0
+ */
 public class Main {
 
   private static final IProveedores fachadaProveedores = new ProveedoresFacade();
@@ -24,6 +31,10 @@ public class Main {
   private static final IUsuarios fachadaUsuarios = new UsuariosFacade();
   private static final IVentas fachadaVentas = new VentasFacade();
 
+  /**
+   * Punto de entrada de la aplicación de carga y verificación del sistema.
+   * * @param args Argumentos de la línea de comandos de la JVM (no utilizados).
+   */
   public static void main(String[] args) {
     System.out.println("═══════════════════════════════════════════════");
     System.out.println("        SISTEMA CANAGEST - CARGA INICIAL         ");
@@ -125,7 +136,6 @@ public class Main {
   private static void insertarOrdenesCompra() throws NegocioException {
     System.out.println("── Insertando órdenes de compra...");
 
-    // Recuperamos proveedores y un par de productos reales de la BD para meterlos al detalle
     ProveedorDTO prov1 = fachadaProveedores.obtenerProveedorPorCodigo("PROV-001");
     ProveedorDTO prov2 = fachadaProveedores.obtenerProveedorPorCodigo("PROV-002");
     ProveedorDTO prov3 = fachadaProveedores.obtenerProveedorPorCodigo("PROV-003");
@@ -136,43 +146,47 @@ public class Main {
       .findFirst()
       .orElse(new UsuarioDTO("sistema", "1234", UsuarioRol.ADMINISTRADOR));
 
-    // ---- Creación de Detalles de Orden (Garantiza productos > 0) ----
-    DetalleOrdenCompraDTO detalleSimulado = new DetalleOrdenCompraDTO();
-    // Nota: Si tus setters se llaman diferente, ajústalos aquí. 
-    // Usualmente llevan: código/nombre producto, cantidad, precio e importe.
-    
-    List<DetalleOrdenCompraDTO> listaDetalles = new ArrayList<>();
-    listaDetalles.add(detalleSimulado); 
+    // CORRECCIÓN: Instanciación parametrizada de productos reales para evitar ítems vacíos (null)
+    DetalleOrdenCompraDTO dArroz = new DetalleOrdenCompraDTO("7501001000011", "Arroz", 100, BigDecimal.valueOf(28.00));
+    DetalleOrdenCompraDTO dAceite = new DetalleOrdenCompraDTO("7501002000010", "Aceite", 50, BigDecimal.valueOf(48.00));
+    DetalleOrdenCompraDTO dLeche = new DetalleOrdenCompraDTO("7501003000019", "Leche", 80, BigDecimal.valueOf(30.00));
+
+    List<DetalleOrdenCompraDTO> lista1 = new ArrayList<>(List.of(dArroz));
+    List<DetalleOrdenCompraDTO> lista2 = new ArrayList<>(List.of(dAceite));
+    List<DetalleOrdenCompraDTO> lista3 = new ArrayList<>(List.of(dLeche));
 
     // ---- Orden de Compra 1 ----
-    OrdenCompraDTO oc1 = new OrdenCompraDTO();
-    oc1.setNumero("OC-2026-001");
-    oc1.setFecha(LocalDate.now().toString());
-    oc1.setEstado("Pendiente");
-    oc1.setTotal(BigDecimal.valueOf(12500.00));
-    oc1.setProveedor(prov1);
-    oc1.setUsuario(comprador);
-    oc1.setProductos(listaDetalles); // Le asignamos la lista con un producto
+    OrdenCompraDTO oc1 = new OrdenCompraDTO(
+      "OC-2026-001",
+      LocalDate.now().toString(),
+      "Pendiente",
+      BigDecimal.valueOf(2800.00),
+      prov1,
+      comprador,
+      lista1
+    );
 
     // ---- Orden de Compra 2 ----
-    OrdenCompraDTO oc2 = new OrdenCompraDTO();
-    oc2.setNumero("OC-2026-002");
-    oc2.setFecha(LocalDate.now().minusDays(2).toString());
-    oc2.setEstado("Aprobada");
-    oc2.setTotal(BigDecimal.valueOf(8750.50));
-    oc2.setProveedor(prov2);
-    oc2.setUsuario(comprador);
-    oc2.setProductos(listaDetalles);
+    OrdenCompraDTO oc2 = new OrdenCompraDTO(
+      "OC-2026-002",
+      LocalDate.now().minusDays(2).toString(),
+      "Aprobada",
+      BigDecimal.valueOf(2400.00),
+      prov2,
+      comprador,
+      lista2
+    );
 
     // ---- Orden de Compra 3 ----
-    OrdenCompraDTO oc3 = new OrdenCompraDTO();
-    oc3.setNumero("OC-2026-003");
-    oc3.setFecha(LocalDate.now().minusDays(5).toString());
-    oc3.setEstado("Recibida");
-    oc3.setTotal(BigDecimal.valueOf(5200.00));
-    oc3.setProveedor(prov3);
-    oc3.setUsuario(comprador);
-    oc3.setProductos(listaDetalles);
+    OrdenCompraDTO oc3 = new OrdenCompraDTO(
+      "OC-2026-003",
+      LocalDate.now().minusDays(5).toString(),
+      "Recibida",
+      BigDecimal.valueOf(2400.00),
+      prov3,
+      comprador,
+      lista3
+    );
 
     fachadaProveedores.guardarOrdenCompra(oc1);
     fachadaProveedores.guardarOrdenCompra(oc2);
@@ -184,7 +198,6 @@ public class Main {
   private static void insertarVentas() throws NegocioException {
     System.out.println("── Insertando ventas...");
 
-    // 1. Jalamos los productos existentes
     ProductoDTO arroz = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501001000011"));
     ProductoDTO frijol = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501001000028"));
     ProductoDTO leche = fachadaProductos.buscarProductoPorCodigo(new EscanearProductoDTO("7501003000019"));
@@ -198,7 +211,6 @@ public class Main {
     venta1.agregarProducto(frijol);
     venta1.setCajero("erick armenta");
     venta1.setFolio("TK-" + System.currentTimeMillis());
-    // Quitamos venta1.setPagada(true);
 
     // Venta 2
     VentaDTO venta2 = new VentaDTO();
@@ -207,7 +219,6 @@ public class Main {
     venta2.agregarProducto(cafe);
     venta2.setCajero("isaias coronado");
     venta2.setFolio("TK-" + (System.currentTimeMillis() + 1));
-    // Quitamos venta2.setPagada(true);
 
     // Venta 3
     VentaDTO venta3 = new VentaDTO();
@@ -217,9 +228,7 @@ public class Main {
     venta3.agregarProducto(frijol);
     venta3.setCajero("erick armenta");
     venta3.setFolio("TK-" + (System.currentTimeMillis() + 2));
-    // Quitamos venta3.setPagada(true);
 
-    // 2. Dejamos que el controlador las procese y las marque como pagadas él mismo
     fachadaVentas.procesarFinalizarVenta(venta1);
     fachadaVentas.procesarFinalizarVenta(venta2);
     fachadaVentas.procesarFinalizarVenta(venta3);
@@ -280,7 +289,7 @@ public class Main {
         v.getSubtotal(), v.getIva(), v.getTotal(),
         v.isPagada() ? "Sí" : "No");
       for (ItemVentaDTO item : v.getItems()) {
-        System.out.printf("       · %-15s x%d  $%.2f%n",
+        System.out.printf("        · %-15s x%d  $%.2f%n",
           item.getNombre(), item.getCantidad(), item.getSubtotal());
       }
     }

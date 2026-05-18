@@ -54,7 +54,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.mycompany</groupId>
-                    <artifactId>diseniadores-negocios.dto</artifactId>
+                    <artifactId>diseniadores-negocios-dto</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -96,7 +96,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.mycompany</groupId>
-                    <artifactId>diseniadores-negocios.dto</artifactId>
+                    <artifactId>diseniadores-negocios-dto</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -112,7 +112,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.mycompany</groupId>
-                    <artifactId>diseniadores-negocios.dto</artifactId>
+                    <artifactId>diseniadores-negocios-dto</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.mycompany</groupId>

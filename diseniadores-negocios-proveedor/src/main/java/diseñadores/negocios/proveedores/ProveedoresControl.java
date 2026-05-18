@@ -67,13 +67,14 @@ public class ProveedoresControl {
     return orden;
   }
 
-  public void guardarOrdenCompra(ProveedorDTO proveedor, int cantidadProductos, BigDecimal total) throws NegocioException {
+ public void guardarOrdenCompra(ProveedorDTO proveedor, int cantidadProductos, BigDecimal total, List<diseñadores.negocios.dto.DetalleOrdenCompraDTO> productos) throws NegocioException {
     validarProveedorNoNulo(proveedor);
     validarCantidadProductos(cantidadProductos);
     validarTotalOrden(total);
     validarExistenciaProveedor(proveedor.getCodigo());
 
-    OrdenCompraDTO orden = crearNuevaOrden(proveedor, cantidadProductos, total);
+    // Se pasa la lista de productos al método de creación
+    OrdenCompraDTO orden = crearNuevaOrden(proveedor, cantidadProductos, total, productos);
     ejecutarGuardadoOrden(orden);
   }
 
@@ -245,14 +246,14 @@ public class ProveedoresControl {
     }
   }
 
-  private OrdenCompraDTO crearNuevaOrden(ProveedorDTO proveedor, int cantidad, BigDecimal total) {
+  private OrdenCompraDTO crearNuevaOrden(ProveedorDTO proveedor, int cantidad, BigDecimal total, List<diseñadores.negocios.dto.DetalleOrdenCompraDTO> productos) {
     ProveedorDTO provRef = new ProveedorDTO(
       proveedor.getNombre(), proveedor.getCodigo(),
       proveedor.getContacto(), proveedor.getTelefono(), proveedor.getEmail(),
       proveedor.getDireccion(), proveedor.getTerminosPago(), proveedor.isActivo()
     );
 
-    return new OrdenCompraDTO(
+    OrdenCompraDTO nuevaOrden = new OrdenCompraDTO(
       generarNumeroOrden(),
       LocalDate.now().toString(),
       provRef,
@@ -260,6 +261,11 @@ public class ProveedoresControl {
       cantidad,
       total
     );
+    
+    // Inyección de los productos reales provenientes de la interfaz de usuario
+    nuevaOrden.setProductos(productos);
+    
+    return nuevaOrden;
   }
 
   private String generarCodigoProveedor() {

@@ -11,18 +11,19 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
 /**
- * Cuadro de diálogo que muestra el detalle completo de una orden de compra.
- * Permite visualizar el estado, la fecha, el proveedor y los productos asociados.
+ * Cuadro de diálogo modal que expone el desglose analítico de una orden de compra.
+ * Despliega información del proveedor, lista de insumos, cantidades totales, coste final y estado.
  * * @author icoro
+ * @version 1.0
  */
 public class DetalleOrdenCompra extends JDialog {
 
   private final OrdenCompraDTO orden;
 
   /**
-   * Constructor de la vista de detalle de la orden.
-   * * @param parent Ventana padre que invoca el diálogo.
-   * @param orden  Objeto DTO con la información de la orden a mostrar.
+   * Constructor de la ventana de desglose detallado de la orden.
+   * * @param parent Ventana Frame de origen que invoca este cuadro modal.
+   * @param orden  Instancia de tipo OrdenCompraDTO con la información a desplegar.
    */
   public DetalleOrdenCompra(JFrame parent, OrdenCompraDTO orden) {
     super(parent, "Detalle de Orden de Compra", true);
@@ -36,7 +37,7 @@ public class DetalleOrdenCompra extends JDialog {
   }
 
   /**
-   * Construye y ensambla los componentes gráficos del panel principal.
+   * Construye y ensambla la jerarquía de componentes gráficos del panel del desglose.
    */
   private void construirContenido() {
     JPanel panel = new JPanel();
@@ -57,16 +58,18 @@ public class DetalleOrdenCompra extends JDialog {
     panel.add(crearSeccion("DETALLE DE LA ORDEN"));
     panel.add(Box.createVerticalStrut(12));
 
-    // Extraer nombres de los productos y sumar cantidades
+    // CORRECCIÓN: Extracción segura de nombres de productos y suma de cantidades físicas incrustadas
     StringBuilder nombresProductos = new StringBuilder();
     int cantidadTotal = 0;
     if (orden.getProductos() != null && !orden.getProductos().isEmpty()) {
       for (DetalleOrdenCompraDTO detalle : orden.getProductos()) {
-        nombresProductos.append(detalle.getNombreProducto()).append(", ");
+        if (detalle.getNombreProducto() != null) {
+            nombresProductos.append(detalle.getNombreProducto()).append(", ");
+        }
         cantidadTotal += detalle.getCantidad();
       }
       if (nombresProductos.length() > 0) {
-        nombresProductos.setLength(nombresProductos.length() - 2); // Remover la última coma
+        nombresProductos.setLength(nombresProductos.length() - 2); 
       }
     } else {
       nombresProductos.append("Sin productos registrados");
@@ -84,8 +87,8 @@ public class DetalleOrdenCompra extends JDialog {
   }
 
   /**
-   * Genera el encabezado con el número de orden y el badge de estado.
-   * * @return JPanel configurado como encabezado.
+   * Genera el contenedor superior con el número identificador único de la orden y su respectivo badge.
+   * * @return JPanel estructurado para el encabezado.
    */
   private JPanel crearEncabezado() {
     JPanel headerRow = new JPanel(new BorderLayout(10, 0));
@@ -102,8 +105,8 @@ public class DetalleOrdenCompra extends JDialog {
   }
 
   /**
-   * Crea la etiqueta para la fecha de la orden.
-   * * @return JLabel con la fecha formateada.
+   * Crea el indicador de texto para la fecha de expedición de la orden.
+   * * @return JLabel formateado para la fecha.
    */
   private JLabel crearLabelFecha() {
     JLabel lblFecha = new JLabel("Fecha: " + (orden.getFecha() != null ? orden.getFecha() : "N/A"));
@@ -113,8 +116,8 @@ public class DetalleOrdenCompra extends JDialog {
   }
 
   /**
-   * Crea un indicador visual (badge) según el estado de la orden de compra.
-   * * @return JLabel estilizado que representa el estado.
+   * Crea un indicador visual estilizado (badge) adaptativo según el flujo del estado de la orden.
+   * * @return JLabel formateado con fondos cromáticos según el estado.
    */
   private JLabel crearBadgeEstado() {
     Color badgeColor, badgeBg;
@@ -144,9 +147,9 @@ public class DetalleOrdenCompra extends JDialog {
   }
 
   /**
-   * Genera un título de sección para agrupar la información.
-   * * @param texto Título de la sección.
-   * @return JLabel estilizado como título de sección.
+   * Construye un separador visual estilizado como etiqueta de sección.
+   * * @param texto Cadena con el título de la agrupación.
+   * @return JLabel formateado.
    */
   private JLabel crearSeccion(String texto) {
     JLabel label = new JLabel(texto);
@@ -157,10 +160,10 @@ public class DetalleOrdenCompra extends JDialog {
   }
 
   /**
-   * Crea un contenedor horizontal para mostrar un par clave-valor de información.
-   * * @param label Etiqueta descriptiva (ej. "Nombre").
-   * @param valor Valor asociado a la etiqueta.
-   * @return JPanel con el diseño de la fila de información.
+   * Ensambla una fila estructurada horizontal de visualización llave-valor con fondo suavizado.
+   * * @param label Título o campo de información a describir.
+   * @param valor Contenido del campo.
+   * @return JPanel con el diseño de la fila inyectado.
    */
   private JPanel crearFilaInfo(String label, String valor) {
     JPanel row = new JPanel(new BorderLayout(10, 0)) {

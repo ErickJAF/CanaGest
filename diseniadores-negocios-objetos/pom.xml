@@ -13,7 +13,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.mycompany</groupId>
-                    <artifactId>diseniadores-negocios.dto</artifactId>
+                    <artifactId>diseniadores-negocios-dto</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

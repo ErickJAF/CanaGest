@@ -22,7 +22,7 @@ import java.util.List;
  * Emplea el patrón Singleton para la comunicación con la base de datos y un adaptador 
  * perimetral para transformar las entidades POJO autogestionadas a objetos de dominio limpios.
  * 
- * @author ERICK
+ * @author icoro
  */
 public class OrdenCompraDAOImpl implements IOrdenCompraDAO {
 
@@ -149,6 +149,7 @@ public class OrdenCompraDAOImpl implements IOrdenCompraDAO {
     private void ejecutarInsercion(OrdenCompra orden) throws PersistenciaException {
         OrdenCompraMongoEntidad entidadMongo = adaptador.convertirAMongo(orden);
         coleccion.insertOne(entidadMongo);
+        System.out.println("LLEGÓ AL DAO DE MONGO");
     }
 
     /**
