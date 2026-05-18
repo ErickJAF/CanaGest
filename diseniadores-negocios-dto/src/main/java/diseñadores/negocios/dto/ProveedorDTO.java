@@ -2,6 +2,10 @@ package diseñadores.negocios.dto;
 
 import java.math.BigDecimal;
 
+/**
+ * Objeto de Transferencia de Datos (DTO) con la información de un proveedor.
+ * * @author icoro
+ */
 public class ProveedorDTO {
 
   private String nombre;
@@ -15,9 +19,23 @@ public class ProveedorDTO {
   private BigDecimal precioProveedor;
   private String tiempoEntregaProveedor;
 
+  /**
+   * Constructor vacío por defecto.
+   */
   public ProveedorDTO() {
   }
 
+  /**
+   * Constructor estándar para instanciar a un proveedor.
+   * * @param nombre       Nombre de la empresa proveedora.
+   * @param codigo       Código de identificación.
+   * @param contacto     Nombre de la persona de contacto.
+   * @param telefono     Teléfono de contacto.
+   * @param email        Correo electrónico corporativo.
+   * @param direccion    Dirección física.
+   * @param terminosPago Términos y condiciones de pago.
+   * @param activo       Indica si el proveedor está operando actualmente.
+   */
   public ProveedorDTO(String nombre, String codigo, String contacto, String telefono,
     String email, String direccion, String terminosPago, boolean activo) {
     this.nombre = nombre;
@@ -30,84 +48,64 @@ public class ProveedorDTO {
     this.activo = activo;
   }
 
-  public String getNombre() {
-    return nombre;
-  }
+  /** @return El nombre del proveedor. */
+  public String getNombre() { return nombre; }
 
-  public void setNombre(String nombre) {
-    this.nombre = nombre;
-  }
+  /** @param nombre El nombre a establecer. */
+  public void setNombre(String nombre) { this.nombre = nombre; }
 
-  public String getCodigo() {
-    return codigo;
-  }
+  /** @return El código identificador del proveedor. */
+  public String getCodigo() { return codigo; }
 
-  public void setCodigo(String codigo) {
-    this.codigo = codigo;
-  }
+  /** @param codigo El código a establecer. */
+  public void setCodigo(String codigo) { this.codigo = codigo; }
 
-  public String getContacto() {
-    return contacto;
-  }
+  /** @return El nombre del contacto principal. */
+  public String getContacto() { return contacto; }
 
-  public void setContacto(String contacto) {
-    this.contacto = contacto;
-  }
+  /** @param contacto El nuevo contacto a establecer. */
+  public void setContacto(String contacto) { this.contacto = contacto; }
 
-  public String getTelefono() {
-    return telefono;
-  }
+  /** @return El número de teléfono. */
+  public String getTelefono() { return telefono; }
 
-  public void setTelefono(String telefono) {
-    this.telefono = telefono;
-  }
+  /** @param telefono El nuevo número de teléfono. */
+  public void setTelefono(String telefono) { this.telefono = telefono; }
 
-  public String getEmail() {
-    return email;
-  }
+  /** @return El correo electrónico. */
+  public String getEmail() { return email; }
 
-  public void setEmail(String email) {
-    this.email = email;
-  }
+  /** @param email El nuevo correo electrónico. */
+  public void setEmail(String email) { this.email = email; }
 
-  public String getDireccion() {
-    return direccion;
-  }
+  /** @return La dirección del proveedor. */
+  public String getDireccion() { return direccion; }
 
-  public void setDireccion(String direccion) {
-    this.direccion = direccion;
-  }
+  /** @param direccion La nueva dirección. */
+  public void setDireccion(String direccion) { this.direccion = direccion; }
 
-  public String getTerminosPago() {
-    return terminosPago;
-  }
+  /** @return Las condiciones de pago pactadas. */
+  public String getTerminosPago() { return terminosPago; }
 
-  public void setTerminosPago(String terminosPago) {
-    this.terminosPago = terminosPago;
-  }
+  /** @param terminosPago Las nuevas condiciones de pago. */
+  public void setTerminosPago(String terminosPago) { this.terminosPago = terminosPago; }
 
-  public boolean isActivo() {
-    return activo;
-  }
+  /** @return True si el proveedor está marcado como activo. */
+  public boolean isActivo() { return activo; }
 
-  public void setActivo(boolean activo) {
-    this.activo = activo;
-  }
+  /** @param activo El estado de actividad a establecer. */
+  public void setActivo(boolean activo) { this.activo = activo; }
 
-  public BigDecimal getPrecioProveedor() {
-    return precioProveedor;
-  }
+  /** @return El coste estándar acordado con este proveedor. */
+  public BigDecimal getPrecioProveedor() { return precioProveedor; }
 
-  public void setPrecioProveedor(BigDecimal precioProveedor) {
-    this.precioProveedor = precioProveedor;
-  }
+  /** @param precioProveedor El nuevo coste estándar. */
+  public void setPrecioProveedor(BigDecimal precioProveedor) { this.precioProveedor = precioProveedor; }
 
-  public String getTiempoEntregaProveedor() {
-    return tiempoEntregaProveedor;
-  }
+  /** @return El tiempo estimado en que el proveedor entrega pedidos. */
+  public String getTiempoEntregaProveedor() { return tiempoEntregaProveedor; }
 
-  public void setTiempoEntregaProveedor(String tiempoEntregaProveedor) {
-    this.tiempoEntregaProveedor = tiempoEntregaProveedor;
-  }
+  /** @param tiempoEntregaProveedor El nuevo tiempo estimado de entrega. */
+  public void setTiempoEntregaProveedor(String tiempoEntregaProveedor) { this.tiempoEntregaProveedor = tiempoEntregaProveedor; }
 
 }

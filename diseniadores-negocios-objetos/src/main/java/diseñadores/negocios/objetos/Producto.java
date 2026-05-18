@@ -8,44 +8,62 @@ import excepciones.PersistenciaException;
 import java.util.List;
 
 /**
- * Puente de conexión directo para operaciones de Productos.
- * @author ERICK
+ * Puente de conexión (Facade) para las operaciones lógicas de Productos.
+ * Gestiona la transformación entre entidades de persistencia y DTOs de vista.
+ * * @author icoro
  */
 public class Producto {
 
   private static final IPersistencia PERSISTENCIA = PersistenciaFacade.getInstancia();
   private static final ProductoProveedorNegocioAdapter ADAPTADOR = new ProductoProveedorNegocioAdapter();
 
+  /**
+   * Recupera todo el catálogo de productos disponibles.
+   * * @return Lista de ProductoDTO.
+   * @throws PersistenciaException Si la consulta a la base de datos falla.
+   */
   public static List<ProductoDTO> obtenerTodos() throws PersistenciaException {
-    // 1. Recupera la lista de entidades de dominio limpio
     List<entidades.Producto> listaDominio = PERSISTENCIA.obtenerProductos();
-    // 2. Las mapea a la lista de DTOs para la UI
     return ADAPTADOR.listaProductosADTO(listaDominio);
   }
 
+  /**
+   * Busca la información de un producto específico mediante su código.
+   * * @param codigo El código del producto a buscar.
+   * @return DTO del producto encontrado o null.
+   * @throws PersistenciaException Si la consulta falla.
+   */
   public static ProductoDTO obtenerPorCodigo(String codigo) throws PersistenciaException {
-    // 1. Busca la entidad de dominio por su código
     entidades.Producto productoDominio = PERSISTENCIA.obtenerProductoPorCodigo(codigo);
-    // 2. La transforma a DTO
     return ADAPTADOR.productoADTO(productoDominio);
   }
 
+  /**
+   * Inserta un nuevo producto en el catálogo del sistema.
+   * * @param productoDTO DTO con la información capturada.
+   * @throws PersistenciaException Si el guardado falla.
+   */
   public static void guardar(ProductoDTO productoDTO) throws PersistenciaException {
-    // 1. Transforma el DTO de la UI al dominio limpio de Mongo
     entidades.Producto productoDominio = ADAPTADOR.productoADominio(productoDTO);
-    // 2. Lo manda a guardar a la base de datos
     PERSISTENCIA.guardarProducto(productoDominio);
   }
 
+  /**
+   * Modifica los datos de un producto previamente registrado.
+   * * @param productoDTO DTO con la información actualizada.
+   * @throws PersistenciaException Si la actualización falla en persistencia.
+   */
   public static void actualizar(ProductoDTO productoDTO) throws PersistenciaException {
-    // 1. Transforma a dominio limpio
     entidades.Producto productoDominio = ADAPTADOR.productoADominio(productoDTO);
-    // 2. Ejecuta la actualización en la persistencia
     PERSISTENCIA.actualizarProducto(productoDominio);
   }
 
+  /**
+   * Elimina un producto del catálogo permanentemente.
+   * * @param codigo Código identificador del producto a remover.
+   * @throws PersistenciaException Si el borrado falla.
+   */
   public static void eliminar(String codigo) throws PersistenciaException {
-    // Pasa directo ya que la persistencia requiere el String plano del código
     PERSISTENCIA.eliminarProducto(codigo);
   }
 
