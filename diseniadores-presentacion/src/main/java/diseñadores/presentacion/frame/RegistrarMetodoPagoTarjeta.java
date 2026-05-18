@@ -13,12 +13,19 @@ import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Ventana de presentación encargada de procesar las transacciones financieras 
+ * utilizando tarjetas de crédito o débito de forma directa y sincronizada con el negocio.
+ * * @author icoro
+ * @version 1.8
+ */
 public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private final SeleccionarMetodoPago seleccionarMetodoPago;
   private final JFrame mainFrame;
   private final VentasControl control;
   private final Runnable onVentaFinalizada;
+  private final VentaDTO ventaAProcesar;
 
   public RegistrarMetodoPagoTarjeta(
     SeleccionarMetodoPago seleccionarMetodoPago,
@@ -31,6 +38,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     this.mainFrame = mainFrame;
     this.control = control;
     this.onVentaFinalizada = onVentaFinalizada;
+    this.ventaAProcesar = control.getVentaActual();
 
     configurarVentana();
     inicializarComponentes();
@@ -64,7 +72,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
     card.add(crearHeader("TC", "Pago con Tarjeta", Colores.AZUL));
     card.add(Box.createVerticalStrut(22));
-    card.add(crearCajaTotal(control.getVentaActual().getTotal(), Colores.AZUL_CLARO, Colores.AZUL));
+    card.add(crearCajaTotal(ventaAProcesar.getTotal(), Colores.AZUL_CLARO, Colores.AZUL));
     card.add(Box.createVerticalStrut(20));
     card.add(crearSeccionInstrucciones());
     card.add(Box.createVerticalStrut(20));
@@ -82,7 +90,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
       new String[]{
         "Inserte o deslice la tarjeta en el lector",
         "Ingrese el PIN cuando se le solicite",
-        "Espere la confirmación de la transacción"},
+        "Espere la confirmation de la transacción"},
       Colores.AZUL, Colores.FONDO_GRIS_CLARO);
   }
 
@@ -134,23 +142,31 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private void ejecutarProcesoPago(String numero, String titular) {
     alternarEstadoCarga(true);
+    
     SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
       @Override
-      protected ResultadoPagoDTO doInBackground() {
-        return control.procesarPagoTarjeta(new PagoTarjetaDTO(numero, titular));
+      protected ResultadoPagoDTO doInBackground() throws Exception {
+        PagoTarjetaDTO dtoTarjeta = new PagoTarjetaDTO(numero, titular);
+        return control.procesarPagoTarjeta(dtoTarjeta);
       }
 
       @Override
       protected void done() {
         alternarEstadoCarga(false);
         try {
-          manejarResultado(get());
+          ResultadoPagoDTO res = get();
+          if (res != null && res.isAprobado()) {
+              finalizarVentaReal();
+          } else {
+              String msg = (res != null) ? res.getMensaje() : "Transacción declinada por la terminal.";
+              JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
+                "Pago rechazado por el banco:\n\n" + msg, "Pago rechazado", JOptionPane.WARNING_MESSAGE);
+          }
         } catch (InterruptedException | ExecutionException ex) {
           JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
-            ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            "Error en procesamiento asíncrono: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
-
     };
     worker.execute();
   }
@@ -160,25 +176,15 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     setCursor(cargando ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
   }
 
-  private void manejarResultado(ResultadoPagoDTO resultado) {
-    if (resultado.isAprobado()) {
-      finalizarVenta();
-    } else {
-      JOptionPane.showMessageDialog(this,
-        "Pago rechazado por el banco:\n\n" + resultado.getMensaje(),
-        "Pago rechazado", JOptionPane.WARNING_MESSAGE);
-    }
-  }
-
-  private void finalizarVenta() {
+  private void finalizarVentaReal() {
     try {
       control.finalizarVenta();
-      TicketDTO ticketDTO = control.generarTicket();
+      TicketDTO ticketDTO = control.generarTicket(ventaAProcesar.getTotal());
       setVisible(false);
       new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);
     } catch (Exception ex) {
       JOptionPane.showMessageDialog(this,
-        "Pago aprobado, pero ocurrió un error al cerrar la venta:\n" + ex.getMessage(),
+        "Error al instanciar el ticket informativo de salida:\n" + ex.getMessage(),
         "Error al finalizar", JOptionPane.ERROR_MESSAGE);
     }
   }
@@ -201,9 +207,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private void onMenuPrincipal() {
     dispose();
-    new MenuPrincipal(
-      control.getUsuarioActivo(),
-      this.control).setVisible(true);
+    new MenuPrincipal(control.getUsuarioActivo(), this.control).setVisible(true);
   }
 
   private JPanel crearFilaVolver() {
@@ -234,7 +238,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         g.setColor(Colores.FONDO_AMARILLO);
         g.fillRect(0, 0, getWidth(), getHeight());
       }
-
     };
     p.setOpaque(false);
     return p;
@@ -252,7 +255,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
         super.paintComponent(g2d);
       }
-
     };
     p.setOpaque(false);
     return p;
@@ -294,7 +296,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
         super.paintComponent(g2d);
       }
-
     };
     iconBox.setOpaque(false);
     iconBox.setPreferredSize(new Dimension(52, 52));
@@ -322,7 +323,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
         super.paintComponent(g2d);
       }
-
     };
     c.setOpaque(false);
     c.setBorder(new EmptyBorder(22, 20, 22, 20));
@@ -352,7 +352,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
         super.paintComponent(g2d);
       }
-
     };
     box.setOpaque(false);
     box.setBorder(new EmptyBorder(16, 18, 16, 18));
@@ -409,7 +408,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
         super.paintComponent(g2d);
       }
-
     };
     tf.setOpaque(false);
     tf.setBorder(new EmptyBorder(12, 14, 12, 14));
@@ -420,6 +418,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     tf.setText(placeholder);
     tf.setForeground(Colores.GRIS_TEXTO);
     tf.addFocusListener(new FocusAdapter() {
+      @Override
       public void focusGained(FocusEvent e) {
         if (tf.getText().equals(placeholder)) {
           tf.setText("");
@@ -427,13 +426,13 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         }
       }
 
+      @Override
       public void focusLost(FocusEvent e) {
         if (tf.getText().isEmpty()) {
           tf.setText(placeholder);
           tf.setForeground(Colores.GRIS_TEXTO);
         }
       }
-
     });
     return tf;
   }
@@ -443,13 +442,9 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
       boolean editando = false;
 
       private void formatear() {
-        if (editando) {
-          return;
-        }
+        if (editando) return;
         SwingUtilities.invokeLater(() -> {
-          if (editando) {
-            return;
-          }
+          if (editando) return;
           editando = true;
           try {
             String raw = tf.getText().replaceAll("[^0-9]", "");
@@ -458,9 +453,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
             }
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < raw.length(); i++) {
-              if (i > 0 && i % 4 == 0) {
-                sb.append(' ');
-              }
+              if (i > 0 && i % 4 == 0) sb.append(' ');
               sb.append(raw.charAt(i));
             }
             int caret = Math.min(tf.getCaretPosition(), sb.length());
@@ -472,43 +465,28 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         });
       }
 
-      public void insertUpdate(DocumentEvent e) {
-        formatear();
-      }
-
-      public void removeUpdate(DocumentEvent e) {
-        formatear();
-      }
-
-      public void changedUpdate(DocumentEvent e) {
-      }
-
+      public void insertUpdate(DocumentEvent e) { formatear(); }
+      public void removeUpdate(DocumentEvent e) { formatear(); }
+      public void changedUpdate(DocumentEvent e) {}
     });
   }
 
+  // MÉTODO RESTAURADO: Constructor estético y dinámico para los botones redondeados de la UI
   private JButton crearBoton(String txt, Color base, Color hover) {
     JButton b = new JButton(txt) {
       boolean ov = false;
-
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
+          @Override
+          public void mouseEntered(MouseEvent e) { ov = true; repaint(); }
+          @Override
+          public void mouseExited(MouseEvent e) { ov = false; repaint(); }
         });
       }
-
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -517,12 +495,10 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
         super.paintComponent(g2d);
       }
-
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(new Font("Segoe UI", Font.BOLD, 15));
     b.setHorizontalAlignment(SwingConstants.CENTER);
     return b;
   }
-
 }

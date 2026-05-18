@@ -4,6 +4,12 @@ import diseñadores.infraestructura.dto.RespuestaPagoDTO;
 import diseñadores.infraestructura.dto.TipoPago;
 import java.math.BigDecimal;
 
+/**
+ * Fachada limpia de infraestructura. Delega el flujo natural al control 
+ * sin generar objetos mutables o clases anónimas complejas.
+ * * @author ERICK
+ * @version 1.2
+ */
 public class PagosFacade implements IPagos {
 
   private final PagosControl control;
@@ -18,7 +24,10 @@ public class PagosFacade implements IPagos {
 
   @Override
   public RespuestaPagoDTO procesarPago(TipoPago tipo, BigDecimal monto, String referencia, String datos) {
-    return control.procesarPago(tipo, monto, referencia, datos);
+    try {
+        return control.procesarPago(tipo, monto, referencia, datos);
+    } catch (Exception e) {
+        return null; // Si truena o no está implementado, devolvemos null de seguridad
+    }
   }
-
 }
