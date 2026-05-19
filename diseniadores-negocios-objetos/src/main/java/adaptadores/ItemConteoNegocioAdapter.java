@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package adaptadores;
 
 import diseñadores.negocios.dto.ItemConteoDTO;
@@ -14,8 +10,10 @@ import java.util.List;
 /**
  * Adaptador de la capa de Negocio encargado de las conversiones bidireccionales
  * entre el DTO de la UI (ItemConteoDTO) y la entidad pura de dominio (ConteoInventario).
- * Mapea fielmente los subdocumentos UsuarioResumen y ProductoResumenInventario.
- * * @author ERICK
+ * Mapea de forma dinámica los subdocumentos UsuarioResumen y ProductoResumenInventario.
+ * Sincronizado exactamente con los atributos reales del dominio.
+ * 
+ * @author ERICK
  */
 public class ItemConteoNegocioAdapter {
 
@@ -30,29 +28,28 @@ public class ItemConteoNegocioAdapter {
         // Mapeo de Atributos Directos del Encabezado
         dominio.setCodigo(dto.getCodigoConteo());
         dominio.setFecha(dto.getFecha());
-        dominio.setEstado("PROCESADO"); // Estado operativo general de la auditoría
+        
+        // CORRECCIÓN: Se asigna el booleano al atributo correcto del dominio
+        dominio.setEstado(dto.isVerificado()); 
 
-        // 1. Instanciamos y mapeamos el subdocumento UsuarioResumen (Auditor)
+        // 1. Instanciamos y mapeamos el subdocumento UsuarioResumen dinámicamente
         UsuarioResumen usuarioResumen = new UsuarioResumen();
-        usuarioResumen.setNombre(dto.getAuditor());
-        usuarioResumen.setRol("EMPLEADO"); // Rol base por defecto
-        if (dto.getAuditor() != null) {
-            usuarioResumen.setIdUsuario(dto.getAuditor().toLowerCase().trim());
-        }
+        usuarioResumen.setIdUsuario(dto.getCodigoUsuario() != null ? dto.getCodigoUsuario().trim() : null);
+        usuarioResumen.setNombre(dto.getNombreUsuario());
+        usuarioResumen.setRol(dto.getRolUsuario() != null ? dto.getRolUsuario().toUpperCase() : "EMPLEADO"); 
         dominio.setUsuario(usuarioResumen);
 
         // 2. Instanciamos y mapeamos el subdocumento ProductoResumenInventario
         ProductoResumenInventario productoResumen = new ProductoResumenInventario();
-        productoResumen.setIdProducto(dto.getCodigo());
-        productoResumen.setNombre(dto.getNombre());
-        productoResumen.setStockSistema(dto.getStockSistema());
+        productoResumen.setIdProducto(dto.getProductoCodigo());
+        productoResumen.setNombre(dto.getProductoNombre());
+        productoResumen.setStockSistema(dto.getProductoStockSistema());
         dominio.setProducto(productoResumen);
 
-        // 3. Mapeo de Métricas y Detalles del Conteo
-        dominio.setCantidadContada(dto.getStockFisico());
-        dominio.setDiferencia(dto.getDiferencia()); // Método matemático calculado en tu DTO
-        dominio.setEstadoConteo(dto.getEstado());   // "Verificado" o "Pendiente"
-        dominio.setDetailleConteo("Auditoría física realizada en pasillo.");
+        // 3. Mapeo de Métricas y Justificación del Conteo
+        dominio.setCantidadContada(dto.getProductoStockFisico());
+        dominio.setDiferencia(dto.getDiferencia()); 
+        dominio.setComentario(dto.getComentario());
 
         return dominio;
     }
@@ -65,25 +62,34 @@ public class ItemConteoNegocioAdapter {
 
         ItemConteoDTO dto = new ItemConteoDTO();
         
-        // Recuperación de los campos de control
+        // Recuperación de los campos de control generales
         dto.setCodigoConteo(dominio.getCodigo());
         dto.setFecha(dominio.getFecha());
+        dto.setComentario(dominio.getComentario());
+        
+        // CORRECCIÓN: Recuperación del booleano usando el método exacto del dominio
+        if (dominio.getEstado() != null) {
+            dto.setVerificado(dominio.getEstado());
+        } else {
+            dto.setVerificado(false); // Respaldo por seguridad si llega nulo de la BD
+        }
         
         // Recuperación segura desde el subdocumento UsuarioResumen
         if (dominio.getUsuario() != null) {
-            dto.setAuditor(dominio.getUsuario().getNombre());
+            dto.setCodigoUsuario(dominio.getUsuario().getIdUsuario());
+            dto.setNombreUsuario(dominio.getUsuario().getNombre());
+            dto.setRolUsuario(dominio.getUsuario().getRol());
         }
 
         // Recuperación segura desde el subdocumento ProductoResumenInventario
         if (dominio.getProducto() != null) {
-            dto.setCodigo(dominio.getProducto().getIdProducto());
-            dto.setNombre(dominio.getProducto().getNombre());
-            dto.setStockSistema(dominio.getProducto().getStockSistema());
+            dto.setProductoCodigo(dominio.getProducto().getIdProducto());
+            dto.setProductoNombre(dominio.getProducto().getNombre());
+            dto.setProductoStockSistema(dominio.getProducto().getStockSistema());
         }
 
-        // Reconstrucción del Stock Físico y actualización de la bandera de verificación
-        dto.setStockFisico(dominio.getCantidadContada());
-        dto.setVerificado(dto.getStockSistema() == dto.getStockFisico());
+        // Reconstrucción de métricas físicas para la UI
+        dto.setProductoStockFisico(dominio.getCantidadContada());
 
         return dto;
     }

@@ -9,11 +9,12 @@ diseñadores\persistencia\conexion\Conexion.class
 diseñadores\persistencia\dao\impl\ProveedorDAOImpl.class
 entidadesmongo\DetalleOrdenCompraMongoEntidad.class
 adaptadores\VentaPersistenciaAdapter.class
-diseñadores\persistencia\dao\impl\ConteoInventarioDAOImpl.class
 diseñadores\persistencia\dao\impl\VentaDAOImpl.class
-diseñadores\persistencia\dao\IConteoInventarioDAO.class
 entidadesmongo\UsuarioResumenMongoEntidad.class
+entidadesmongo\ConteoInventarioGeneralMongoEntidad.class
 diseñadores\persistencia\PersistenciaFacade.class
+diseñadores\persistencia\dao\IConteoInventarioGeneralDAO.class
+diseñadores\persistencia\dao\impl\ConteoInventarioGeneralDAOImpl.class
 diseñadores\persistencia\dao\IVentaDAO.class
 entidadesmongo\ConteoInventarioMongoEntidad.class
 entidadesmongo\UsuarioMongoEntidad.class
@@ -30,6 +31,6 @@ diseñadores\persistencia\dao\impl\UsuarioDAOImpl.class
 diseñadores\persistencia\dao\IProveedorDAO.class
 entidadesmongo\ProveedorMongoEntidad.class
 entidadesmongo\ProductoResumenInventarioMongoEntidad.class
-adaptadores\ConteoInventarioPersistenciaAdapter.class
+adaptadores\ConteoInventarioGeneralPersistenciaAdapter.class
 entidadesmongo\ProductoResumenCompraMongoEntidad.class
 adaptadores\UsuarioPersistenciaAdapter.class

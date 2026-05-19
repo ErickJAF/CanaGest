@@ -16,17 +16,16 @@ public class ConteoInventario {
     private String id;
     private String codigo; 
     private String fecha;
-    private String estado;
+    private Boolean estado;
 
     private UsuarioResumen usuario;
     private ProductoResumenInventario producto;
     
     private int cantidadContada;
     private int diferencia;
-    private String estadoConteo;
-    private String detailleConteo;
+    private String comentario;
 
-    public ConteoInventario(String id, String codigo, String fecha, String estado, UsuarioResumen usuario, ProductoResumenInventario producto, int cantidadContada, int diferencia, String estadoConteo, String detailleConteo) {
+    public ConteoInventario(String id, String codigo, String fecha, Boolean estado, UsuarioResumen usuario, ProductoResumenInventario producto, int cantidadContada, int diferencia, String comentario) {
         this.id = id;
         this.codigo = codigo;
         this.fecha = fecha;
@@ -35,8 +34,7 @@ public class ConteoInventario {
         this.producto = producto;
         this.cantidadContada = cantidadContada;
         this.diferencia = diferencia;
-        this.estadoConteo = estadoConteo;
-        this.detailleConteo = detailleConteo;
+        this.comentario = comentario;
     }
 
     public ConteoInventario() {
@@ -66,11 +64,11 @@ public class ConteoInventario {
         this.fecha = fecha;
     }
 
-    public String getEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
     }
 
@@ -106,24 +104,16 @@ public class ConteoInventario {
         this.diferencia = diferencia;
     }
 
-    public String getEstadoConteo() {
-        return estadoConteo;
+    public String getComentario() {
+        return comentario;
     }
 
-    public void setEstadoConteo(String estadoConteo) {
-        this.estadoConteo = estadoConteo;
-    }
-
-    public String getDetailleConteo() {
-        return detailleConteo;
-    }
-
-    public void setDetailleConteo(String detailleConteo) {
-        this.detailleConteo = detailleConteo;
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
     }
 
     @Override
     public String toString() {
-        return "ConteoInventario{" + "id=" + id + ", codigo=" + codigo + ", fecha=" + fecha + ", estado=" + estado + ", usuario=" + usuario + ", producto=" + producto + ", cantidadContada=" + cantidadContada + ", diferencia=" + diferencia + ", estadoConteo=" + estadoConteo + ", detailleConteo=" + detailleConteo + '}';
+        return "ConteoInventario{" + "id=" + id + ", codigo=" + codigo + ", fecha=" + fecha + ", estado=" + estado + ", usuario=" + usuario + ", producto=" + producto + ", cantidadContada=" + cantidadContada + ", diferencia=" + diferencia + ", comentario=" + comentario + '}';
     }
 }

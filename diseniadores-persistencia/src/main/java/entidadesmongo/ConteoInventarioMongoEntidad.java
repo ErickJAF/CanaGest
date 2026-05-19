@@ -4,9 +4,6 @@
  */
 package entidadesmongo;
 
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.types.ObjectId;
-
 /**
  * Entidad de persistencia que representa un documento principal en la colección "conteosInventario".
  * 
@@ -20,22 +17,18 @@ import org.bson.types.ObjectId;
  */
 public class ConteoInventarioMongoEntidad {
 
-    @BsonId
-    private ObjectId id;
     private String codigo;
     private String fecha;
-    private String estado;
+    private Boolean estado;
 
     private UsuarioResumenMongoEntidad usuario;
     private ProductoResumenInventarioMongoEntidad producto;
     
     private int cantidadContada;
     private int diferencia;
-    private String estadoConteo;
-    private String detalleConteo;
+    private String comentario;
 
-    public ConteoInventarioMongoEntidad(ObjectId id, String codigo, String fecha, String estado, UsuarioResumenMongoEntidad usuario, ProductoResumenInventarioMongoEntidad producto, int cantidadContada, int diferencia, String estadoConteo, String detalleConteo) {
-        this.id = id;
+    public ConteoInventarioMongoEntidad(String codigo, String fecha, Boolean estado, UsuarioResumenMongoEntidad usuario, ProductoResumenInventarioMongoEntidad producto, int cantidadContada, int diferencia, String comentario) {
         this.codigo = codigo;
         this.fecha = fecha;
         this.estado = estado;
@@ -43,15 +36,10 @@ public class ConteoInventarioMongoEntidad {
         this.producto = producto;
         this.cantidadContada = cantidadContada;
         this.diferencia = diferencia;
-        this.estadoConteo = estadoConteo;
-        this.detalleConteo = detalleConteo;
+        this.comentario = comentario;
     }
 
     public ConteoInventarioMongoEntidad() {
-    }
-
-    public ObjectId getId() {
-        return id;
     }
 
     public String getCodigo() {
@@ -62,7 +50,7 @@ public class ConteoInventarioMongoEntidad {
         return fecha;
     }
 
-    public String getEstado() {
+    public Boolean getEstado() {
         return estado;
     }
 
@@ -82,16 +70,8 @@ public class ConteoInventarioMongoEntidad {
         return diferencia;
     }
 
-    public String getEstadoConteo() {
-        return estadoConteo;
-    }
-
-    public String getDetalleConteo() {
-        return detalleConteo;
-    }
-
-    public void setId(ObjectId id) {
-        this.id = id;
+    public String getComentario() {
+        return comentario;
     }
 
     public void setCodigo(String codigo) {
@@ -102,7 +82,7 @@ public class ConteoInventarioMongoEntidad {
         this.fecha = fecha;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(Boolean estado) {
         this.estado = estado;
     }
 
@@ -122,16 +102,12 @@ public class ConteoInventarioMongoEntidad {
         this.diferencia = diferencia;
     }
 
-    public void setEstadoConteo(String estadoConteo) {
-        this.estadoConteo = estadoConteo;
-    }
-
-    public void setDetalleConteo(String detalleConteo) {
-        this.detalleConteo = detalleConteo;
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
     }
 
     @Override
     public String toString() {
-        return "ConteoInventarioMongoEntidad{" + "id=" + id + ", codigo=" + codigo + ", fecha=" + fecha + ", estado=" + estado + ", usuario=" + usuario + ", producto=" + producto + ", cantidadContada=" + cantidadContada + ", diferencia=" + diferencia + ", estadoConteo=" + estadoConteo + ", detalleConteo=" + detalleConteo + '}';
+        return "ConteoInventarioMongoEntidad{" + "codigo=" + codigo + ", fecha=" + fecha + ", estado=" + estado + ", usuario=" + usuario + ", producto=" + producto + ", cantidadContada=" + cantidadContada + ", diferencia=" + diferencia + ", comentario=" + comentario + '}';
     }
 }

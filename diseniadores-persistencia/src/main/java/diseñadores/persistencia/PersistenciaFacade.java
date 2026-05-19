@@ -1,18 +1,18 @@
 package diseñadores.persistencia;
 
-import diseñadores.persistencia.dao.IConteoInventarioDAO;
+import diseñadores.persistencia.dao.IConteoInventarioGeneralDAO; // NUEVO: Interfaz general
 import diseñadores.persistencia.dao.IOrdenCompraDAO;
 import diseñadores.persistencia.dao.IProductoDAO;
 import diseñadores.persistencia.dao.IProveedorDAO;
 import diseñadores.persistencia.dao.IUsuarioDAO;
 import diseñadores.persistencia.dao.IVentaDAO;
-import diseñadores.persistencia.dao.impl.ConteoInventarioDAOImpl;
+import diseñadores.persistencia.dao.impl.ConteoInventarioGeneralDAOImpl; // NUEVO: Implementación general
 import diseñadores.persistencia.dao.impl.OrdenCompraDAOImpl;
 import diseñadores.persistencia.dao.impl.ProductoDAOImpl;
 import diseñadores.persistencia.dao.impl.ProveedorDAOImpl;
 import diseñadores.persistencia.dao.impl.UsuarioDAOImpl;
 import diseñadores.persistencia.dao.impl.VentaDAOImpl;
-import entidades.ConteoInventario;
+import entidades.ConteoInventarioGeneral; // NUEVO: Entidad de dominio raíz correcta
 import entidades.OrdenCompra;
 import entidades.Producto;
 import entidades.Proveedor;
@@ -26,7 +26,8 @@ import java.util.Optional;
 /**
  * Fachada única de Persistencia que centraliza y delega el acceso a los subsistemas DAO.
  * Trabaja enteramente con entidades de dominio limpio, aislando la lógica de datos.
- * * @author ERICK
+ * 
+ * @author ERICK
  */
 public class PersistenciaFacade implements IPersistencia {
 
@@ -37,7 +38,7 @@ public class PersistenciaFacade implements IPersistencia {
     private final IUsuarioDAO usuarioDAO;
     private final IProveedorDAO proveedorDAO;
     private final IOrdenCompraDAO ordenCompraDAO;
-    private final IConteoInventarioDAO conteoInventarioDAO;
+    private final IConteoInventarioGeneralDAO conteoInventarioGeneralDAO; // MODIFICADO
 
     /**
      * Constructor privado para aplicar el patrón de diseño Singleton.
@@ -48,12 +49,13 @@ public class PersistenciaFacade implements IPersistencia {
         this.usuarioDAO = new UsuarioDAOImpl();
         this.proveedorDAO = new ProveedorDAOImpl();
         this.ordenCompraDAO = new OrdenCompraDAOImpl();
-        this.conteoInventarioDAO = new ConteoInventarioDAOImpl();
+        this.conteoInventarioGeneralDAO = new ConteoInventarioGeneralDAOImpl(); // MODIFICADO
     }
 
     /**
      * Obtiene de forma sincronizada la instancia única de la Fachada.
-     * * @return Instancia global de PersistenciaFacade.
+     * 
+     * @return Instancia global de PersistenciaFacade.
      */
     public static synchronized PersistenciaFacade getInstancia() {
         if (instancia == null) {
@@ -189,27 +191,27 @@ public class PersistenciaFacade implements IPersistencia {
     }
 
     @Override
-    public List<ConteoInventario> obtenerConteosInventario() throws PersistenciaException {
-        return conteoInventarioDAO.obtenerTodos();
+    public List<ConteoInventarioGeneral> obtenerConteosInventarioGenerales() throws PersistenciaException {
+        return conteoInventarioGeneralDAO.obtenerTodos();
     }
 
     @Override
-    public ConteoInventario obtenerConteoInventarioPorCodigo(String codigo) throws PersistenciaException {
-        return conteoInventarioDAO.obtenerPorCodigo(codigo);
+    public ConteoInventarioGeneral obtenerConteoInventarioGeneralPorCodigo(String codigoGeneral) throws PersistenciaException {
+        return conteoInventarioGeneralDAO.obtenerPorCodigoGeneral(codigoGeneral);
     }
 
     @Override
-    public void guardarConteoInventario(ConteoInventario conteo) throws PersistenciaException {
-        conteoInventarioDAO.guardar(conteo);
+    public void guardarConteoInventarioGeneral(ConteoInventarioGeneral conteoGeneral) throws PersistenciaException {
+        conteoInventarioGeneralDAO.guardar(conteoGeneral);
     }
 
     @Override
-    public void actualizarConteoInventario(ConteoInventario conteo) throws PersistenciaException {
-        conteoInventarioDAO.actualizar(conteo);
+    public void actualizarConteoInventarioGeneral(ConteoInventarioGeneral conteoGeneral) throws PersistenciaException {
+        conteoInventarioGeneralDAO.actualizar(conteoGeneral);
     }
 
     @Override
-    public void eliminarConteoInventario(String codigo) throws PersistenciaException {
-        conteoInventarioDAO.eliminar(codigo);
+    public void eliminarConteoInventarioGeneral(String codigoGeneral) throws PersistenciaException {
+        conteoInventarioGeneralDAO.eliminar(codigoGeneral);
     }
 }

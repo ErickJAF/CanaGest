@@ -6,7 +6,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import entidadesmongo.ConteoInventarioMongoEntidad;
+import entidadesmongo.ConteoInventarioGeneralMongoEntidad; // NUEVO: Importación de la entidad maestro raíz
 import entidadesmongo.OrdenCompraMongoEntidad;
 import entidadesmongo.ProductoMongoEntidad;
 import entidadesmongo.UsuarioMongoEntidad;
@@ -23,7 +23,7 @@ import org.bson.codecs.pojo.PojoCodecProvider;
  * el registro de Codecs POJO para permitir el mapeo automático entre objetos 
  * Java y documentos BSON.
  * 
- * @autor Erick
+ * @author Erick
  */
 public class Conexion {
 
@@ -34,7 +34,8 @@ public class Conexion {
     private static final String COLECCION_PRODUCTOS = "productos";
     private static final String COLECCION_VENTAS = "ventas";
     private static final String COLECCION_ORDENES = "ordenesCompra";
-    private static final String COLECCION_CONTEOS = "conteosInventario";
+    // MODIFICADO: Apunta al nombre de la colección maestra unificada
+    private static final String COLECCION_CONTEOS_GENERALES = "conteosInventarioGeneral"; 
 
     private static Conexion instancia;
     private MongoClient mongoClient;
@@ -66,11 +67,11 @@ public class Conexion {
             // Guardamos las instancias en los atributos del objeto
             this.mongoClient = MongoClients.create(configuracion);
             this.database = this.mongoClient.getDatabase(NOMBRE_BASE_DATOS);
-            // AGREGA ESTAS LÍNEAS DE RASTREO:
-    System.out.println("=================================================");
-    System.out.println("¡CONEXIÓN EN VIVO LOGRADA CON MONGODB!");
-    System.out.println("Base de datos en uso activo: " + this.database.getName());
-    System.out.println("=================================================");
+            
+            System.out.println("=================================================");
+            System.out.println("¡CONEXIÓN EN VIVO LOGRADA CON MONGODB!");
+            System.out.println("Base de datos en uso activo: " + this.database.getName());
+            System.out.println("=================================================");
         } catch (Exception e) {
             System.err.println("Error al conectar con MongoDB: " + e.getMessage());
         }
@@ -89,7 +90,7 @@ public class Conexion {
 
     /**
      * Obtiene la base de datos centralizada del sistema.
-     * * @return MongoDatabase con los códecs mapeados.
+     * @return MongoDatabase con los códecs mapeados.
      */
     public MongoDatabase getDatabase() {
         return database;
@@ -138,10 +139,12 @@ public class Conexion {
     }
 
     /**
-     * Centraliza el acceso a la colección de Conteos de Inventario mapeada con su entidad de persistencia.
-     * @return MongoCollection tipada para Conteos de Inventario.
+     * NUEVO: Centraliza el acceso a la colección unificada de auditorías maestros.
+     * Mapea de manera directa el documento raíz con su lista interna de subdocumentos.
+     * 
+     * @return MongoCollection tipada para ConteoInventarioGeneralMongoEntidad.
      */
-    public MongoCollection<ConteoInventarioMongoEntidad> obtenerColeccionConteos() {
-        return getDatabase().getCollection(COLECCION_CONTEOS, ConteoInventarioMongoEntidad.class);
+    public MongoCollection<ConteoInventarioGeneralMongoEntidad> obtenerColeccionConteosGenerales() {
+        return getDatabase().getCollection(COLECCION_CONTEOS_GENERALES, ConteoInventarioGeneralMongoEntidad.class);
     }
 }

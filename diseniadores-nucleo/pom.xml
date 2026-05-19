@@ -56,6 +56,10 @@
                     <groupId>com.mycompany</groupId>
                     <artifactId>diseniadores-negocios-dto</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.mycompany</groupId>
+                    <artifactId>diseniadores-negocios.dto</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -98,6 +102,10 @@
                     <groupId>com.mycompany</groupId>
                     <artifactId>diseniadores-negocios-dto</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.mycompany</groupId>
+                    <artifactId>diseniadores-negocios.dto</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -117,6 +125,10 @@
                 <exclusion>
                     <groupId>com.mycompany</groupId>
                     <artifactId>diseniadores-dominio</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.mycompany</groupId>
+                    <artifactId>diseniadores-negocios.dto</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

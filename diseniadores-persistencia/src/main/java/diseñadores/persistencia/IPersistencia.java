@@ -1,6 +1,7 @@
 package diseñadores.persistencia;
 
 import entidades.ConteoInventario;
+import entidades.ConteoInventarioGeneral;
 import entidades.OrdenCompra;
 import entidades.Producto;
 import entidades.Proveedor;
@@ -49,9 +50,9 @@ public interface IPersistencia {
     void actualizarOrdenCompra(OrdenCompra orden) throws PersistenciaException;
     void eliminarOrdenCompra(String numero) throws PersistenciaException;
 
-    List<ConteoInventario> obtenerConteosInventario() throws PersistenciaException;
-    ConteoInventario obtenerConteoInventarioPorCodigo(String codigo) throws PersistenciaException;
-    void guardarConteoInventario(ConteoInventario conteo) throws PersistenciaException;
-    void actualizarConteoInventario(ConteoInventario conteo) throws PersistenciaException;
-    void eliminarConteoInventario(String codigo) throws PersistenciaException;
+    public List<ConteoInventarioGeneral> obtenerConteosInventarioGenerales() throws PersistenciaException;
+    public ConteoInventarioGeneral obtenerConteoInventarioGeneralPorCodigo(String codigoGeneral) throws PersistenciaException;
+    public void guardarConteoInventarioGeneral(ConteoInventarioGeneral conteoGeneral) throws PersistenciaException;
+    public void actualizarConteoInventarioGeneral(ConteoInventarioGeneral conteoGeneral) throws PersistenciaException;
+    public void eliminarConteoInventarioGeneral(String codigoGeneral) throws PersistenciaException;
 }
