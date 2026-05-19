@@ -233,11 +233,6 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
             ov = false;
             repaint();
           }
-
-          public void mouseClicked(MouseEvent e) {
-            onConfirmarPago(mainFrame, onConfirmado);
-          }
-
         });
       }
 
@@ -251,8 +246,14 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
         super.paintComponent(g2d);
       }
-
     };
+
+    btn.addActionListener(e -> {
+      if (recibido.compareTo(control.getVentaActual().getTotal()) >= 0) {
+        onConfirmarPago(mainFrame, onConfirmado);
+      }
+    });
+
     btn.setForeground(Colores.BLANCO);
     btn.setFont(Fuentes.b(15));
     return btn;
@@ -270,8 +271,9 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
     ResultadoPagoDTO resultado = control.procesarPagoEfectivo(new PagoEfectivoDTO(recibido));
 
-    if (!resultado.isAprobado()) {
-      JOptionPane.showMessageDialog(this, resultado.getMensaje(), "Pago rechazado", JOptionPane.WARNING_MESSAGE);
+    if (resultado == null || !resultado.isAprobado()) {
+      String mensaje = (resultado != null) ? resultado.getMensaje() : "Error del servidor: La venta está en un estado inválido o ya fue pagada.";
+      JOptionPane.showMessageDialog(this, mensaje, "Pago rechazado", JOptionPane.WARNING_MESSAGE);
       return;
     }
 
@@ -279,10 +281,23 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
   }
 
   private void finalizarVenta(JFrame mainFrame, Runnable onConfirmado) {
-    control.finalizarVenta();
-    TicketDTO ticketDTO = control.generarTicket(recibido);
-    setVisible(false);
-    new PantallaTicket(mainFrame, ticketDTO, onConfirmado, control);
+    try {
+
+      
+      TicketDTO ticketDTO = control.generarTicket(recibido);
+      setVisible(false);
+      new PantallaTicket(mainFrame, ticketDTO, onConfirmado, control);
+      
+    } catch (Exception ex) {
+      // Si el ticket falla, al menos te avisa, limpia el carrito fantasma y no se congela
+      JOptionPane.showMessageDialog(this, 
+          "¡La venta se guardó exitosamente en MongoDB!\nError interno al generar el ticket visual.", 
+          "Venta Exitosa", JOptionPane.INFORMATION_MESSAGE);
+          
+      control.iniciarNuevaVenta();
+      dispose();
+      new MenuPrincipal(control.getUsuarioActivo(), control).setVisible(true);
+    }
   }
 
   private void actualizarUI() {

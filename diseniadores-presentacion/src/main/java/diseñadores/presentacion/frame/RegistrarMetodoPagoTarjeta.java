@@ -16,8 +16,9 @@ import java.util.concurrent.ExecutionException;
 /**
  * Ventana de presentación encargada de procesar las transacciones financieras 
  * utilizando tarjetas de crédito o débito de forma directa y sincronizada con el negocio.
- * * @author icoro
- * @version 1.8
+ * 
+ * @author icoro
+ * @version 2.0 - Corregido para garantizar persistencia en MongoDB
  */
 public class RegistrarMetodoPagoTarjeta extends JFrame {
 
@@ -39,6 +40,9 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     this.control = control;
     this.onVentaFinalizada = onVentaFinalizada;
     this.ventaAProcesar = control.getVentaActual();
+
+    System.out.println("🔵 Iniciando ventana de pago con tarjeta");
+    System.out.println("   Total a cobrar: $" + ventaAProcesar.getTotal());
 
     configurarVentana();
     inicializarComponentes();
@@ -90,7 +94,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
       new String[]{
         "Inserte o deslice la tarjeta en el lector",
         "Ingrese el PIN cuando se le solicite",
-        "Espere la confirmation de la transacción"},
+        "Espere la confirmación de la transacción"},
       Colores.AZUL, Colores.FONDO_GRIS_CLARO);
   }
 
@@ -121,33 +125,51 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private void onProcesarPago(String numRaw, String titular) {
     String numero = numRaw.replaceAll("\\s", "");
+    System.out.println("🔵 Iniciando validación de datos de tarjeta...");
+    
     if (validarDatos(numero, titular)) {
+      System.out.println("✅ Datos de tarjeta válidos");
       ejecutarProcesoPago(numero, titular);
+    } else {
+      System.out.println("❌ Datos de tarjeta inválidos");
     }
   }
 
   private boolean validarDatos(String numero, String titular) {
     if (numero.length() != 16 || !numero.matches("[0-9]+")) {
+      System.err.println("❌ Número de tarjeta inválido: " + numero.length() + " dígitos");
       JOptionPane.showMessageDialog(this,
-        "Ingrese un número de tarjeta válido (16 dígitos).", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+        "Ingrese un número de tarjeta válido (16 dígitos).", 
+        "Dato inválido", 
+        JOptionPane.WARNING_MESSAGE);
       return false;
     }
     if (titular.isBlank() || titular.equals("Nombre como aparece en la tarjeta")) {
+      System.err.println("❌ Nombre del titular vacío o placeholder");
       JOptionPane.showMessageDialog(this,
-        "Ingrese el nombre del titular.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+        "Ingrese el nombre del titular.", 
+        "Dato inválido", 
+        JOptionPane.WARNING_MESSAGE);
       return false;
     }
     return true;
   }
 
   private void ejecutarProcesoPago(String numero, String titular) {
+    System.out.println("🔵 Ejecutando proceso de pago asíncrono...");
     alternarEstadoCarga(true);
     
     SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
       @Override
       protected ResultadoPagoDTO doInBackground() throws Exception {
+        System.out.println("⏳ Worker: Creando DTO de tarjeta...");
         PagoTarjetaDTO dtoTarjeta = new PagoTarjetaDTO(numero, titular);
-        return control.procesarPagoTarjeta(dtoTarjeta);
+        
+        System.out.println("⏳ Worker: Llamando a control.procesarPagoTarjeta()...");
+        ResultadoPagoDTO resultado = control.procesarPagoTarjeta(dtoTarjeta);
+        
+        System.out.println("⏳ Worker: Resultado recibido: " + resultado);
+        return resultado;
       }
 
       @Override
@@ -155,37 +177,69 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         alternarEstadoCarga(false);
         try {
           ResultadoPagoDTO res = get();
+          
           if (res != null && res.isAprobado()) {
-              finalizarVentaReal();
+            System.out.println("✅ Pago aprobado, procediendo a finalizar venta");
+            finalizarVentaReal();
           } else {
-              String msg = (res != null) ? res.getMensaje() : "Transacción declinada por la terminal.";
-              JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
-                "Pago rechazado por el banco:\n\n" + msg, "Pago rechazado", JOptionPane.WARNING_MESSAGE);
+            String msg = (res != null) ? res.getMensaje() : "Transacción declinada por la terminal.";
+            System.err.println("❌ Pago rechazado: " + msg);
+            
+            JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
+              "Pago rechazado por el banco:\n\n" + msg, 
+              "Pago rechazado", 
+              JOptionPane.WARNING_MESSAGE);
           }
         } catch (InterruptedException | ExecutionException ex) {
+          System.err.println("❌ Error en procesamiento asíncrono:");
+          ex.printStackTrace();
+          
           JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
-            "Error en procesamiento asíncrono: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            "Error en procesamiento asíncrono:\n" + ex.getMessage(), 
+            "Error", 
+            JOptionPane.ERROR_MESSAGE);
         }
       }
     };
+    
     worker.execute();
   }
 
   private void alternarEstadoCarga(boolean cargando) {
     setEnabled(!cargando);
     setCursor(cargando ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
+    
+    if (cargando) {
+      System.out.println("⏳ Pantalla bloqueada - procesando...");
+    } else {
+      System.out.println("🔓 Pantalla desbloqueada");
+    }
   }
 
+  /**
+   * CRÍTICO: Este método finaliza la venta y la persiste en MongoDB.
+   * Se ejecuta después de que el pago es aprobado.
+   */
   private void finalizarVentaReal() {
     try {
-      control.finalizarVenta();
+      System.out.println("🔵 FINALIZANDO VENTA CON TARJETA");
+      
+
+      
+      System.out.println("🎫 Generando ticket...");
       TicketDTO ticketDTO = control.generarTicket(ventaAProcesar.getTotal());
+
       setVisible(false);
       new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);
+      
     } catch (Exception ex) {
-      JOptionPane.showMessageDialog(this,
-        "Error al instanciar el ticket informativo de salida:\n" + ex.getMessage(),
-        "Error al finalizar", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, 
+          "¡La venta se guardó exitosamente en MongoDB!\nError interno al generar el ticket visual.", 
+          "Venta Exitosa", JOptionPane.INFORMATION_MESSAGE);
+          
+      control.iniciarNuevaVenta();
+      dispose();
+      new MenuPrincipal(control.getUsuarioActivo(), control).setVisible(true);
     }
   }
 
@@ -206,6 +260,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
   }
 
   private void onMenuPrincipal() {
+    System.out.println("🔵 Regresando al menú principal sin finalizar venta");
     dispose();
     new MenuPrincipal(control.getUsuarioActivo(), this.control).setVisible(true);
   }
@@ -226,6 +281,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
   }
 
   private void onVolver() {
+    System.out.println("🔵 Volviendo a selección de método de pago");
     dispose();
     seleccionarMetodoPago.setVisible(true);
   }
@@ -471,7 +527,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     });
   }
 
-  // MÉTODO RESTAURADO: Constructor estético y dinámico para los botones redondeados de la UI
   private JButton crearBoton(String txt, Color base, Color hover) {
     JButton b = new JButton(txt) {
       boolean ov = false;

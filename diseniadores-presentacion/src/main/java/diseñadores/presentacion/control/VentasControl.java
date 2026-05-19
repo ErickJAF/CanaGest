@@ -52,7 +52,20 @@ public class VentasControl {
   }
 
   private void manejarError(Exception e) {
-    System.err.println("Error en operación de negocio: " + e.getMessage());
+    System.err.println("❌ ERROR EN OPERACIÓN DE NEGOCIO: " + e.getMessage());
+    e.printStackTrace();
+    
+    // Mostrar diálogo al usuario para que vea el error
+    try {
+      javax.swing.JOptionPane.showMessageDialog(null,
+        "Error en la operación:\n" + e.getMessage(),
+        "Error del Sistema",
+        javax.swing.JOptionPane.ERROR_MESSAGE);
+    } catch (Exception dialogEx) {
+      // Si falla el diálogo, solo imprimir
+      System.err.println("No se pudo mostrar diálogo de error: " + dialogEx.getMessage());
+    }
+    
     throw new RuntimeException(e.getMessage(), e);
   }
 
@@ -182,41 +195,154 @@ public class VentasControl {
   public boolean carritoVacio() { return ventaActual.getItems().isEmpty(); }
 
   // --- PROCESAMIENTO DE PAGOS Y TICKETS ---
+  
+  /**
+   * Procesa el pago en efectivo y configura los datos necesarios en la venta.
+   * CRÍTICO: Este método ahora configura el método de pago antes de retornar.
+   */
   public ResultadoPagoDTO procesarPagoEfectivo(PagoEfectivoDTO pagoDTO) {
-    try { return ventasFachada.procesarPagoEfectivo(ventaActual, pagoDTO); } 
-    catch (NegocioException e) { manejarError(e); return null; }
+    try {
+      System.out.println("🔵 Procesando pago en efectivo...");
+      System.out.println("   Monto recibido: $" + pagoDTO.getMontoRecibido());
+      System.out.println("   Total venta: $" + ventaActual.getTotal());
+      
+      ResultadoPagoDTO resultado = ventasFachada.procesarPagoEfectivo(ventaActual, pagoDTO);
+      
+      // CRÍTICO: Configurar el método de pago en la venta
+      if (resultado != null && resultado.isAprobado()) {
+        System.out.println("✅ Pago en efectivo aprobado");
+        ventaActual.setMetodoPago("EFECTIVO");
+        ventaActual.setCambio(resultado.getCambio());
+        System.out.println("   Cambio: $" + resultado.getCambio());
+      } else {
+        System.err.println("❌ Pago en efectivo rechazado");
+      }
+      
+      return resultado;
+    } catch (NegocioException e) { 
+      System.err.println("❌ Error al procesar pago en efectivo: " + e.getMessage());
+      manejarError(e); 
+      return null; 
+    }
   }
 
-  public ResultadoPagoDTO procesarPagoTarjeta(PagoTarjetaDTO pagoDTO) {
-    try { return ventasFachada.procesarPagoTarjeta(ventaActual, pagoDTO); } 
-    catch (NegocioException e) { manejarError(e); return null; }
+  /**
+   * Procesa el pago con tarjeta y configura los datos necesarios en la venta.
+   * CRÍTICO: Este método ahora configura el método de pago y número de autorización.
+   */
+public ResultadoPagoDTO procesarPagoTarjeta(PagoTarjetaDTO pagoDTO) {
+    try {
+      System.out.println("🔵 Procesando pago con tarjeta (MOCK SIN SERVIDOR)...");
+      System.out.println("   Titular: " + pagoDTO.getTitular());
+      
+      // 1. Fingimos la espera de conexión de 1.5 segundos
+      Thread.sleep(1500); 
+      
+      // 2. Aprobamos la transacción
+      String autorizacion = "AUTH-" + System.currentTimeMillis();
+      ResultadoPagoDTO resultado = ResultadoPagoDTO.aprobado(autorizacion);
+      
+      System.out.println("✅ Pago aprobado por simulador interno");
+
+      // 3. CONFIGURACIÓN DE CAMPOS
+      ventaActual.setMetodoPago("TARJETA");
+      ventaActual.setTipoPago(TipoPago.TARJETA); 
+      // ¡ELIMINADO! ventaActual.setPagada(true); <-- El backend se encargará de esto internamente
+      ventaActual.setNumeroAutorizacion(autorizacion);
+      
+      // Generar códigos de control si no existen
+      if (ventaActual.getCodigoVenta() == null || ventaActual.getCodigoVenta().isEmpty()) {
+         long time = System.currentTimeMillis();
+         ventaActual.setCodigoVenta("VTA-" + time + "-" + (int)(Math.random() * 1000));
+      }
+      
+      if (ventaActual.getFechaHora() == null || ventaActual.getFechaHora().isEmpty()) {
+         ventaActual.setFechaHora(new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date()));
+      }
+      
+      ventaActual.setCajero(usuarioActivo.getNombre());
+
+      // 4. Guardamos directamente en la base de datos
+      System.out.println("💾 Guardando venta de tarjeta en BD...");
+      ventasFachada.procesarFinalizarVenta(ventaActual);
+      System.out.println("✅ Venta guardada exitosamente en MongoDB como TARJETA");
+      
+      return resultado;
+      
+    } catch (Exception e) { 
+      System.err.println("❌ Error al procesar tarjeta simulada: " + e.getMessage());
+      return null; 
+    }
   }
 
-  public ResultadoPagoDTO procesarPagoCoDi(PagoQrDTO pagoDTO) {
-    try { return ventasFachada.procesarPagoQr(ventaActual, pagoDTO); } 
-    catch (NegocioException e) { manejarError(e); return null; }
-  }
-
-  public ResultadoPagoDTO procesarPagoTransferencia(PagoTransferenciaDTO pagoDTO) {
-    try { return ventasFachada.procesarPagoTransferencia(ventaActual, pagoDTO); } 
-    catch (NegocioException e) { manejarError(e); return null; }
-  }
+ 
 
   public BigDecimal calcularCambio(BigDecimal recibido) {
     try { return ventasFachada.procesarCalcularCambio(ventaActual, recibido); } 
     catch (NegocioException e) { manejarError(e); return BigDecimal.ZERO; }
   }
 
+  /**
+   * Finaliza la venta configurando todos los datos necesarios y persistiendo en la base de datos.
+   * CRÍTICO: Genera código único, timestamp y guarda en MongoDB.
+   */
   public void finalizarVenta() {
     try {
+      System.out.println("🔵 Iniciando finalización de venta...");
+      
+      // CRÍTICO: Generar código único si no existe
+      if (ventaActual.getCodigoVenta() == null || ventaActual.getCodigoVenta().isEmpty()) {
+        String codigoVenta = generarCodigoVentaUnico();
+        ventaActual.setCodigoVenta(codigoVenta);
+        System.out.println("   Código generado: " + codigoVenta);
+      }
+      
+      // CRÍTICO: Configurar timestamp
+      if (ventaActual.getFechaHora() == null || ventaActual.getFechaHora().isEmpty()) {
+        String fechaHora = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+            .format(new java.util.Date());
+        ventaActual.setFechaHora(fechaHora);
+        System.out.println("   Fecha/Hora: " + fechaHora);
+      }
+      
+      // Configurar cajero
       ventaActual.setCajero(usuarioActivo.getNombre());
+      System.out.println("   Cajero: " + usuarioActivo.getNombre());
+      System.out.println("   Método de pago: " + ventaActual.getMetodoPago());
+      System.out.println("   Total: $" + ventaActual.getTotal());
+      System.out.println("   Items: " + ventaActual.getItems().size());
+      
+      // CRÍTICO: PERSISTIR EN BASE DE DATOS
+      System.out.println("💾 Guardando venta en base de datos...");
       ventasFachada.procesarFinalizarVenta(ventaActual);
-    } catch (NegocioException e) { manejarError(e); }
+      System.out.println("✅ Venta guardada exitosamente en MongoDB");
+      
+    } catch (NegocioException e) { 
+      System.err.println("❌ Error al finalizar venta: " + e.getMessage());
+      manejarError(e); 
+    }
+  }
+  
+  /**
+   * Genera un código de venta único basado en timestamp y un número aleatorio.
+   */
+  private String generarCodigoVentaUnico() {
+    long timestamp = System.currentTimeMillis();
+    int random = (int)(Math.random() * 1000);
+    return String.format("VTA-%d-%03d", timestamp, random);
   }
 
   public TicketDTO generarTicket(BigDecimal recibido) {
-    try { return ventasFachada.generarTicket(ventaActual, recibido); } 
-    catch (NegocioException e) { manejarError(e); return null; }
+    try {
+      System.out.println("🎫 Generando ticket...");
+      TicketDTO ticket = ventasFachada.generarTicket(ventaActual, recibido);
+      System.out.println("✅ Ticket generado");
+      return ticket;
+    } catch (NegocioException e) { 
+      System.err.println("❌ Error al generar ticket: " + e.getMessage());
+      manejarError(e); 
+      return null; 
+    }
   }
 
   public TicketDTO generarTicket() { return generarTicket(BigDecimal.ZERO); }

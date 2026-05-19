@@ -22,10 +22,9 @@ public class SeleccionarMetodoPago extends JFrame {
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
 
   static {
+    // Solo se conservan Efectivo y Tarjeta
     COLORES_METODO.put("Efectivo", new Color[]{Colores.VERDE_METODO, Colores.VERDE_METODO_H});
     COLORES_METODO.put("Tarjeta", new Color[]{Colores.AZUL, Colores.AZUL_HOVER});
-    COLORES_METODO.put("CoDi", new Color[]{Colores.MORADO, Colores.MORADO_HOVER});
-    COLORES_METODO.put("Transferencia", new Color[]{Colores.NARANJA, Colores.NARANJA_HOVER});
   }
 
   private final JFrame frameAnterior;
@@ -133,7 +132,8 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private JPanel crearGridMetodos() {
-    JPanel grid = new JPanel(new GridLayout(2, 2, 16, 16));
+    // Se cambia el GridLayout a 1 fila y 2 columnas
+    JPanel grid = new JPanel(new GridLayout(1, 2, 16, 16));
     grid.setOpaque(false);
     COLORES_METODO.forEach((nombre, colores)
       -> grid.add(crearBotonMetodo(nombre, colores[0], colores[1]))
@@ -224,10 +224,6 @@ public class SeleccionarMetodoPago extends JFrame {
         abrirPagoEfectivo();
       case "Tarjeta" ->
         abrirPagoTarjeta();
-      case "CoDi" ->
-        abrirPagoCoDi();
-      case "Transferencia" ->
-        abrirPagoTransferencia();
       default ->
         manejarMetodoNoDisponible();
     }
@@ -239,14 +235,6 @@ public class SeleccionarMetodoPago extends JFrame {
 
   private void abrirPagoTarjeta() {
     new RegistrarMetodoPagoTarjeta(this, frameAnterior, control, onVentaFinalizada);
-  }
-
-  private void abrirPagoCoDi() {
-    new RegistrarMetodoPagoQr(this, frameAnterior, control, onVentaFinalizada);
-  }
-
-  private void abrirPagoTransferencia() {
-    new RegistrarMetodoPagoTransferencia(this, frameAnterior, this.control, onVentaFinalizada);
   }
 
   private void manejarMetodoNoDisponible() {

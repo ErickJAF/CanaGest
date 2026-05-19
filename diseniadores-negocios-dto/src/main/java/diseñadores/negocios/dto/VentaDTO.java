@@ -19,13 +19,24 @@ public class VentaDTO {
     .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
   private String cajero;
 
+  // ====================================================================
+  // NUEVOS ATRIBUTOS FALTANTES (Requeridos por VentasControl)
+  // ====================================================================
+  private String codigoVenta;
+  private String fechaHora;
+  private String metodoPago;
+  private String numeroAutorizacion;
+  private BigDecimal cambio;
+
   public VentaDTO() {
     this.items = new ArrayList<>();
     this.pagada = false;
     this.total = BigDecimal.ZERO;
     this.subtotal = BigDecimal.ZERO;
     this.iva = BigDecimal.ZERO;
+    this.cambio = BigDecimal.ZERO; // Inicializado por defecto
     this.folio = null;
+    this.fechaHora = this.fecha; // Sincronizado con tu formato de fecha original
   }
 
   public void agregarProducto(ProductoDTO producto) {
@@ -53,6 +64,10 @@ public class VentaDTO {
     this.iva = this.total.subtract(this.subtotal).setScale(2, RoundingMode.HALF_UP);
     this.totalUnidades = items.stream().mapToInt(ItemVentaDTO::getCantidad).sum();
   }
+
+  // ====================================================================
+  // GETTERS Y SETTERS ORIGINALES
+  // ====================================================================
 
   public List<ItemVentaDTO> getItems() {
     return items;
@@ -134,4 +149,45 @@ public class VentaDTO {
     this.cajero = cajero;
   }
 
+
+
+  public String getCodigoVenta() {
+    return codigoVenta;
+  }
+
+  public void setCodigoVenta(String codigoVenta) {
+    this.codigoVenta = codigoVenta;
+  }
+
+  public String getFechaHora() {
+    return fechaHora;
+  }
+
+  public void setFechaHora(String fechaHora) {
+    this.fechaHora = fechaHora;
+  }
+
+  public String getMetodoPago() {
+    return metodoPago;
+  }
+
+  public void setMetodoPago(String metodoPago) {
+    this.metodoPago = metodoPago;
+  }
+
+  public String getNumeroAutorizacion() {
+    return numeroAutorizacion;
+  }
+
+  public void setNumeroAutorizacion(String numeroAutorizacion) {
+    this.numeroAutorizacion = numeroAutorizacion;
+  }
+
+  public BigDecimal getCambio() {
+    return cambio;
+  }
+
+  public void setCambio(BigDecimal cambio) {
+    this.cambio = cambio;
+  }
 }
