@@ -55,4 +55,7 @@ public interface IPersistencia {
     public void guardarConteoInventarioGeneral(ConteoInventarioGeneral conteoGeneral) throws PersistenciaException;
     public void actualizarConteoInventarioGeneral(ConteoInventarioGeneral conteoGeneral) throws PersistenciaException;
     public void eliminarConteoInventarioGeneral(String codigoGeneral) throws PersistenciaException;
+    
+ 
+List<org.bson.Document> obtenerConteoOrdenesPorProveedor() throws PersistenciaException;
 }

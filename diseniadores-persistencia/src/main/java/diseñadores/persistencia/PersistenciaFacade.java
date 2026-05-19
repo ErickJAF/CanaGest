@@ -214,4 +214,9 @@ public class PersistenciaFacade implements IPersistencia {
     public void eliminarConteoInventarioGeneral(String codigoGeneral) throws PersistenciaException {
         conteoInventarioGeneralDAO.eliminar(codigoGeneral);
     }
+    
+    @Override
+    public List<org.bson.Document> obtenerConteoOrdenesPorProveedor() throws PersistenciaException {
+        return ordenCompraDAO.obtenerConteoOrdenesPorProveedor();
+    }
 }

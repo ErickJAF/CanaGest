@@ -94,7 +94,7 @@ public class OrdenesCompras extends JFrame {
     return contenido;
   }
 
-  private JPanel crearHeader() {
+ private JPanel crearHeader() {
     JPanel header = new JPanel(new BorderLayout());
     header.setOpaque(false);
     header.setBorder(new EmptyBorder(0, 0, 20, 0));
@@ -112,12 +112,27 @@ public class OrdenesCompras extends JFrame {
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
 
+    // Botón original de Nueva Orden
     JButton btnNueva = btnAzul("Nueva Orden");
     btnNueva.addActionListener(e -> new RegistrarNuevaOrdenCompra(this, control, this::recargarOrdenes).setVisible(true));
 
-    JPanel derH = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 6));
+    // =========================================================
+    // NUEVO: Botón para abrir el Dashboard de MongoDB Aggregate
+    // =========================================================
+    JButton btnStats = crearBotonEstilizado("📊 Ver Estadísticas", 
+        new Color(79, 70, 229), // Color morado/índigo moderno
+        new Color(67, 56, 202), // Color hover
+        Colores.BLANCO);
+    
+    // Al darle clic, abre la pantalla que creamos en el paso anterior
+    btnStats.addActionListener(e -> new PantallaReporteProveedores(control));
+    // =========================================================
+
+    // Panel derecho para agrupar los botones (Le puse un gap de 12px de separación)
+    JPanel derH = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 6));
     derH.setOpaque(false);
-    derH.add(btnNueva);
+    derH.add(btnStats); // Primero el de estadísticas
+    derH.add(btnNueva); // Luego el de acción principal
 
     header.add(tituloCol, BorderLayout.WEST);
     header.add(derH, BorderLayout.EAST);

@@ -99,6 +99,19 @@ public class VentasControl {
     try { proveedoresFachada.guardarProveedor(proveedor); } 
     catch (NegocioException e) { manejarError(e); }
   }
+  /**
+   * Consulta el reporte agregado de órdenes de compra mediante el DAO.
+   * Este método utiliza el pipeline de agregación definido en la persistencia.
+   */
+  public List<org.bson.Document> consultarReporteOrdenes() {
+    try {
+        // Llamamos a la fachada de persistencia que tiene el aggregate
+        return diseñadores.persistencia.PersistenciaFacade.getInstancia().obtenerConteoOrdenesPorProveedor();
+    } catch (Exception e) {
+        System.err.println("❌ Error al consultar reporte: " + e.getMessage());
+        return new java.util.ArrayList<>(); // Retorna lista vacía si hay error
+    }
+  }
 
   public void actualizarProveedor(ProveedorDTO proveedor) {
     try { proveedoresFachada.actualizarProveedor(proveedor); } 
