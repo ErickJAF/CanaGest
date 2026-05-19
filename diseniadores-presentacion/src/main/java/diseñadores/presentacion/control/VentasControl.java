@@ -310,7 +310,8 @@ public class VentasControl {
           ConteoInventarioGeneralDTO nuevaAuditoria = new ConteoInventarioGeneralDTO();
           // Genera el folio base con un prefijo y marca temporal
           nuevaAuditoria.setCodigoGeneral("AUD-" + (System.currentTimeMillis() / 1000));
-          nuevaAuditoria.setFechaRegistro(new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date()));
+          String fechaActual = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date());
+          nuevaAuditoria.setFechaRegistro(fechaActual);
           nuevaAuditoria.setVerificadoGlobal(false);
 
           // Tomamos la foto del inventario en este instante
@@ -323,9 +324,11 @@ public class VentasControl {
               // Los datos de firma del usuario y comentarios se quedan vacíos/null
               // hasta que se use la ventana de ajuste.
               ItemConteoDTO item = new ItemConteoDTO(
-                  "ITM-" + nuevaAuditoria.getCodigoGeneral() + "-" + secuencia++,
-                  null, null, null, 
-                  p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()
+                "ITM-" + nuevaAuditoria.getCodigoGeneral() + "-" + secuencia++,
+                fechaActual,
+                usuarioActivo.getNombre(),
+                null, 
+                p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()
               );
               item.setComentario("");
               itemsIniciales.add(item);
