@@ -27,7 +27,6 @@ public class ItemConteoNegocioAdapter {
         
         // Mapeo de Atributos Directos del Encabezado
         dominio.setCodigo(dto.getCodigoConteo());
-        dominio.setFecha(dto.getFecha());
         
         // CORRECCIÓN: Se asigna el booleano al atributo correcto del dominio
         dominio.setEstado(dto.isVerificado()); 
@@ -64,7 +63,6 @@ public class ItemConteoNegocioAdapter {
         
         // Recuperación de los campos de control generales
         dto.setCodigoConteo(dominio.getCodigo());
-        dto.setFecha(dominio.getFecha());
         dto.setComentario(dominio.getComentario());
         
         // CORRECCIÓN: Recuperación del booleano usando el método exacto del dominio

@@ -112,7 +112,6 @@ public class AjusteInventario extends JDialog {
         String codigoUsrPrevio = item.getCodigoUsuario();
         String nombreUsrPrevio = item.getNombreUsuario();
         String rolUsrPrevio = item.getRolUsuario();
-        String fechaPrevio = item.getFecha();
         
         try {
             if (sesionActual == null) {
@@ -128,9 +127,6 @@ public class AjusteInventario extends JDialog {
             } else {
                 item.setRolUsuario("ADMINISTRADOR");
             }
-            
-            String fechaModificacion = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date());
-            item.setFecha(fechaModificacion); 
 
             item.setComentario(comentario);
             item.setVerificado(true);
@@ -178,7 +174,6 @@ public class AjusteInventario extends JDialog {
             item.setCodigoUsuario(codigoUsrPrevio);
             item.setNombreUsuario(nombreUsrPrevio);
             item.setRolUsuario(rolUsrPrevio);
-            item.setFecha(fechaPrevio);
             
             ex.printStackTrace(); 
             
